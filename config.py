@@ -1,0 +1,20 @@
+app_id = "NDEwODczOTI1NzE1NzU1MDA5.DVzhdw.qP-0Ng9udZ3U1ynTCf0Ws3n6odA"
+version = "v0.1"
+prefix = "-"
+dad = "shroomy"
+shroomy_emoji = {
+    'putrid' : "<:putrid:401430913713700874>",
+    'bless' : "<:bless:401431375217164288>",
+    'reepenis' : "<:reepenis:405042345793421314>",
+    'hmmrio' : "<:hmmrio:401428125063315460>",
+    'hmmjho' : "<:hmmjho:401429201976295424>",
+    'bruh' : "<:bruh:401429747676217346>",
+    'but' : "<:but:401431950906228766>",
+    'veggieok' : "<:veggieok:401432685412876299>",
+    'mortywhat' : "<:mortywhat:403294421086633996>",
+    'rickha' : "<:rickha:403294701421068288>",
+    'paingril' : "<:paingril:405408215287988224>",
+    'madyoshi' : "<:madyoshi:405804351945179146>",
+    'gokucrei' : "<:gokucrei:406177400653873154>",
+    'battlercre' : "<:battlercri:406472450662989824>"
+    }
