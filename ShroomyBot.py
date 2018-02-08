@@ -7,8 +7,9 @@ import platform
 
 # personal files
 import config
-from config import shroomy_emoji
 import commons
+import discord_commons
+import otherapi
 
 # Initialize our Bot
 shroomy = Bot(description="Shroomy Bot " + config.version, command_prefix=config.prefix, pm_help=False)
@@ -24,49 +25,46 @@ async def on_ready():
     print('--------')
     print('Use this link to invite {}:'.format(shroomy.user.name))
     print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8'.format(shroomy.user.id))
-    return await shroomy.change_presence(game=discord.Game(name='Game Called \'Life\''))
+    return await shroomy.change_presence(game=discord.Game(name='Monster Hunter World'))
 
 # [mood] command. Generates random mood whenever it is called.
 @shroomy.command()
 async def mood():
-    # Retrieve a random item
-    mood_items = tuple( shroomy_emoji.values() )
-    mood_string = "Hai, my current mood is... " + commons.getRandomTuple(mood_items)
+    # Retrieve a random item from custom emojis from the server
+    custom_emojis = []
+    for emoji in shroomy.get_all_emojis():
+        # Make sure the emojis are unrestriced otherwise they will be ignored
+        if not emoji.roles:
+            custom_emojis.append(emoji)
+
+    if not custom_emojis:
+        return await shroomy.say("Aww...There's no custom emojis I can express in this server."
+                                 + " In that case my mood is :poop:")
+
+    # Retrieve random emoji retrieved from server and format it to be shown on chat.
+    emoji_item = commons.getRandomTuple(custom_emojis)
+    emoji_string = discord_commons.formatEmoji(emoji_item)
 
     # Display on Discord
-    await shroomy.say(mood_string)
+    await shroomy.say("Hai, my current mood is... " + emoji_string)
     await asyncio.sleep(1)
     await shroomy.say("...for now anyways. Ask me again later.")
 
 # [choose] command.
 @shroomy.command()
 async def choose(*args):
-    size = len(args)
+    items = []
+
+    for text in args:
+        if text == 'or':
+            continue
+        items.append(text.replace(',',''))
+    size = len(items)
     if size == 0:
-        await shroomy.say("There wasn't anything to choose from. " + shroomy_emoji['gokucrei'])
+        await shroomy.say("There wasn't anything to choose from. :cry:")
     elif size == 1:
-        await shroomy.say("Well... I guess " + args[0] + " since that's the only option!")
-    else:
-        items = []
-
-        #scenarios:
-        # 1. spaces only
-        # 2. contains or
-        # 3. contains comma
-        # 4. contains comma AND or
-
-        useDelim = False
-
-        for i in (',','or'):
-            if i in args:
-                useDelim = True
-                break
-
-        if useDelim == True:
-            text = ' '.join(args)
-            items = commons.getSplit(text)
-        else:
-            items = args
+        await shroomy.say("Well... I guess " + str(items[0]) + " since that's the only option!")
+    else:            
         item_chosen = commons.getRandomTuple( items )
         if(item_chosen == "me") :
             item_chosen = "you, dad"
@@ -93,6 +91,50 @@ async def poke(ctx, member : discord.Member = None):
         await shroomy.say('Hello, {0}!'.format(source))
     else:
         await shroomy.say('Hey {0}, {1} is poking you!'.format(member.mention, source))
+
+# [pkmn]
+@shroomy.command()
+async def pkmn(*args):
+    await shroomy.say("Ok, let me look it up...")
+    pokemon = ' '.join(args)
+    result_msg = otherapi.getPokemon(pokemon)
+    await shroomy.say(result_msg)
+
+# PENDING #
+@shroomy.command()
+async def say(*args):
+    word = ' '.join(args)
+    await shroomy.say(word + "!")
+
+# [define]
+@shroomy.command()
+async def define(command, *args):
+    if not command:
+        ### CREATE HELP ###
+        return
+    if command == "jp":
+        words = ' '.join(args)
+        result_msg = otherapi.getJishoPage(words)
+        if not result_msg['error']:
+            definitions = ""
+            count = 1
+            for eng_def in result_msg['definitions']:
+                definitions += "{0}. {1}\n".format(count, eng_def)
+                count += 1
+            
+            embed = discord.Embed(color=0xa6dded)
+            embed.add_field(name="Reading(s)",value="{0} ({1})".format(result_msg['writing'],result_msg['reading']), inline=False)
+            embed.add_field(name="Definition(s)",value=definitions, inline=False)
+            #embed.set_image(url="https://cdn.discordapp.com/emojis/401429201976295424.png?v=1")
+            embed.set_image(url="https://gfycat.com/WellgroomedTediousDeinonychus")
+            embed.set_footer(text="Made using Jisho http://jisho.org")
+            await shroomy.say(embed=embed)
+        else:
+            await shroomy.say(result_msg['error'])
+                
+    else:
+        ### CREATE HELP ###
+        return
 
 # [echoNoCmd] command.
 @shroomy.command(pass_context=True)
