@@ -104,7 +104,10 @@ async def pkmn(*args):
 @shroomy.command()
 async def say(*args):
     word = ' '.join(args)
-    await shroomy.say(word + "!")
+    embed = discord.Embed(color=0x2b9b29)
+    embed.add_field(name="I say...",value="    {0}!!".format(word), inline=False)
+    embed.set_image(url="https://cdn.discordapp.com/emojis/401429201976295424.png?v=1")
+    await shroomy.say(embed=embed)
 
 # [define]
 @shroomy.command()
@@ -126,7 +129,7 @@ async def define(command, *args):
             embed.add_field(name="Reading(s)",value="{0} ({1})".format(result_msg['writing'],result_msg['reading']), inline=False)
             embed.add_field(name="Definition(s)",value=definitions, inline=False)
             #embed.set_image(url="https://cdn.discordapp.com/emojis/401429201976295424.png?v=1")
-            embed.set_image(url="https://gfycat.com/WellgroomedTediousDeinonychus")
+            embed.set_image(url="https://orig00.deviantart.net/ca57/f/2015/073/2/c/joe0001_by_nch85-d8logqm.gif")
             embed.set_footer(text="Made using Jisho http://jisho.org")
             await shroomy.say(embed=embed)
         else:
