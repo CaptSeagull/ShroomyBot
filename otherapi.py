@@ -10,6 +10,7 @@ def getPokemon(query=""):
     '''Retrive requested pokemon info from json file. If none exists, retrive from getPokemonFromApi(...) '''
     # This is where we will store json results (from file or API)
     pkmn_json = {}
+    query = str(query).lower()
 
     # Retrieve relative path to the json file
     rel_path = "pkmn/"
@@ -29,6 +30,8 @@ def getPokemon(query=""):
         # Otherwise, try to save the file if there was no error
         if not pkmn_result['error'] and has_file is True:
             commons.updateJsonFileContents(pkmn_result,query,filepath)
+    else:
+        pkmn_result.update({'error':""})
     return pkmn_result
 
 def getPokemonFromApi(query=""):
@@ -59,7 +62,8 @@ def getPokemonFromApi(query=""):
 
     # If query is not empty
     if query:
-        r = requests.post("{0}/{1}/{2}/{3}/".format(url, version, command, str(query).lower()))
+        r = requests.post("{0}/{1}/{2}/{3}/".format(
+            url, version, command, query))
         # Debug. Uncomment if needed
         # print(r.url)
 
@@ -108,7 +112,7 @@ def getRandomQuote():
         result_dict = {
             'quote':result.get('quoteText',""),
             'author':result.get('quoteAuthor',""),
-            'url':result.get('quoteLink',site_url),
+            'source':result.get('quoteLink',site_url),
             'error':""
             }
         return result_dict
@@ -141,6 +145,7 @@ def getJishoPage(query):
         'reading':"",
         'definitions':[],
         'speech_type':[],
+        'source':"http://jisho.org",
         'error':""
         }
 
@@ -191,3 +196,26 @@ def parseJishoPage(json, wrapper, result_index=0):
 
     wrapper['error'] = "No results found for the word requested."
     return wrapper
+
+def getRandomUkDoge():
+    doge_wrapper = {
+        'doge_url':"",
+        'source':"https://thedogapi.co.uk",
+        'error':""
+        }
+    
+    url = 'https://api.thedogapi.co.uk'
+    version = 'v2'
+    command = 'dog.php'
+    params = dict(limit=1)
+
+    r = requests.get("{0}/{1}/{2}".format(url,version,command),params=params)
+    if(r.status_code == 200):
+        result = r.json()
+        result_list = result.get('data', [])
+        if result_list:
+            result_data = result_list[0]
+            doge_wrapper['doge_url'] = result_data.get('url', "")
+    else:
+        doge_wrapper['error'] = "Couldn't woof :sob: Error Code: " + str(r.status_code)
+    return doge_wrapper

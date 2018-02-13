@@ -27,9 +27,19 @@ async def on_ready():
     print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8'.format(shroomy.user.id))
     return await shroomy.change_presence(game=discord.Game(name='Monster Hunter World'))
 
+'''
+async def is_safe(ctx):
+    is_channel_not_safe = commands.is_nsfw()
+    if is_channel_not_safe:
+        ctx.send("Oh... I don\'t think I should be here.")
+    return is_channel_not_safe
+'''
+
 # [mood] command. Generates random mood whenever it is called.
 @shroomy.command()
+#@commands.check(is_safe)
 async def mood():
+    """Generate text with a custom emoji from server"""
     # Retrieve a random item from custom emojis from the server
     custom_emojis = []
     for emoji in shroomy.get_all_emojis():
@@ -53,6 +63,7 @@ async def mood():
 # [choose] command.
 @shroomy.command()
 async def choose(*args):
+    """Choose one or more items asked"""
     items = []
 
     for text in args:
@@ -75,6 +86,7 @@ async def choose(*args):
 # uses 'dad' variable in config.py
 @shroomy.command(pass_context=True)
 async def goodbye(ctx):
+    """Sends a goodbye text; stops if host"""
     if config.dad not in ctx.message.author.name:
         return await shroomy.say("Oh! Goodbye, " + ctx.message.author.mention + "! See you again soon.")
     await shroomy.say("I'm logging off. Goodbye frineds!")
@@ -83,6 +95,7 @@ async def goodbye(ctx):
 # [poke] command. If entered a user who is not the sender nor the bot, it will mention that the sender poked the user. Otherwise, it will assume the sender is poking the bot.
 @shroomy.command(pass_context=True)
 async def poke(ctx, member : discord.Member = None):
+    """Poke someone. Assumes itself if no mention."""
     source = ctx.message.author.mention
     pokingBot = True
     if member is not None and member.mention != source and member.bot != True:
@@ -94,54 +107,103 @@ async def poke(ctx, member : discord.Member = None):
 
 # [pkmn]
 @shroomy.command()
-async def pkmn(*args):
+async def pkmn(*, pokemon):
+    """Looks up pokemon of the given name"""
     await shroomy.say("Ok, let me look it up...")
-    pokemon = ' '.join(args)
-    result_msg = otherapi.getPokemon(pokemon)
-    await shroomy.say(result_msg)
+    # pokemon = ' '.join(args)
+    result_dict = otherapi.getPokemon(pokemon)
+    if not result_dict['error']:
+        types = ""
+        for pkmn_type in result_dict['pkmn_types']:
+            types += pkmn_type + " "
+        
+        embed = discord.Embed(color=0x2b9b29)
+        embed.add_field(name="Pokemon#{0}".format(result_dict['pkmn_id']),
+                        value="{0}".format(result_dict['pkmn_name']), inline=True)
+        embed.add_field(name="Type:",
+                        value=types, inline=True)
+        embed.set_image(url=result_dict['pkmn_sprite'])
+        embed.set_footer(text="courtesy of {0}".format(result_dict['source']))
+        return await shroomy.say(content="Pokemon found!",embed=embed)
+    else:
+        return await shroomy.say("Oops! | {0}".format(result_dict['error']))
 
 # PENDING #
 @shroomy.command()
 async def say(*args):
+    """Repeats sender. If woof, a dog. If nothing, a quote."""
+    if not args:
+        result_dict = otherapi.getRandomQuote()
+        if not result_dict['error']:
+            embed = discord.Embed(url=result_dict['source'],color=0x2b9b29)
+            embed.add_field(name="**{0}**".format(result_dict['author']),
+                            value="{0}".format(result_dict['quote']), inline=False)
+            return await shroomy.say(embed=embed)
+        else:
+            return await shroomy.say(
+                content="O-oh | Failed: {0}".format(result_dict['error'])) 
+
+
+    if args and args[0].lower() == 'woof':
+        result_dict = otherapi.getRandomUkDoge()
+        if not result_dict['error']:
+            #embed = discord.Embed(title="woof woof!",color=0x2b9b29)
+            embed = discord.Embed(color=0x2b9b29)
+            embed.set_image(url=result_dict['doge_url'])
+            embed.set_footer(text="courtesy of {0}".format(result_dict['source']))
+            return await shroomy.say(content=":dog: | Woof Woof!",embed=embed)
+        else:
+            return await shroomy.say(
+                content=":dog: | Failed: {0}".format(result_dict['error']))
     word = ' '.join(args)
     embed = discord.Embed(color=0x2b9b29)
-    embed.add_field(name="I say...",value="    {0}!!".format(word), inline=False)
-    embed.set_image(url="https://cdn.discordapp.com/emojis/401429201976295424.png?v=1")
+    embed.add_field(name="I say...",value="{0}!!".format(word), inline=False)
+    embed.set_image(url="https://cdn.discordapp.com/emojis/401429201976295424.png")
     await shroomy.say(embed=embed)
 
 # [define]
 @shroomy.command()
 async def define(command, *args):
+    """jp, looks up a japanese definition from the given"""
     if not command:
         ### CREATE HELP ###
         return
     if command == "jp":
         words = ' '.join(args)
-        result_msg = otherapi.getJishoPage(words)
-        if not result_msg['error']:
+        result_dict = otherapi.getJishoPage(words)
+        if not result_dict['error']:
             definitions = ""
             count = 1
-            for eng_def in result_msg['definitions']:
+            for eng_def in result_dict['definitions']:
                 definitions += "{0}. {1}\n".format(count, eng_def)
                 count += 1
-            
+            speech_types = ""
+            for speech in result_dict['speech_type']:
+                speech_types += speech + " "
             embed = discord.Embed(color=0xa6dded)
-            embed.add_field(name="Reading(s)",value="{0} ({1})".format(result_msg['writing'],result_msg['reading']), inline=False)
-            embed.add_field(name="Definition(s)",value=definitions, inline=False)
-            #embed.set_image(url="https://cdn.discordapp.com/emojis/401429201976295424.png?v=1")
+            embed.add_field(name="Reading(s)",
+                            value="{0} ({1})".format(
+                                result_dict['writing'],
+                                result_dict['reading']), inline=True)
+            if speech_types:
+                embed.add_field(name="Type(s) of Speech",
+                            value=speech_types, inline=True)
+            embed.add_field(name="Definition(s)",
+                            value=definitions, inline=False)
             embed.set_image(url="https://orig00.deviantart.net/ca57/f/2015/073/2/c/joe0001_by_nch85-d8logqm.gif")
-            embed.set_footer(text="Made using Jisho http://jisho.org")
+            embed.set_footer(text="Made using {0}".format(
+                result_dict['source']))
             await shroomy.say(embed=embed)
         else:
-            await shroomy.say(result_msg['error'])
+            await shroomy.say("Oops! | {0}".format(result_dict['error']))
                 
     else:
         ### CREATE HELP ###
         return
 
 # [echoNoCmd] command.
-@shroomy.command(pass_context=True)
-async def echoNoCmd(ctx, *args):
+@shroomy.command(pass_context=True,name='echo')
+async def _echoNoCmd(ctx, *args):
     if config.dad not in ctx.message.author.name:
         return
     message = ' '.join(args)
