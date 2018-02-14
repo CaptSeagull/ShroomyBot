@@ -62,8 +62,12 @@ def getPokemonFromApi(query=""):
 
     # If query is not empty
     if query:
+        # If query is missingno, return immediately
+        if query == "missingno":
+            return pkmn_wrapper
+        
         r = requests.post("{0}/{1}/{2}/{3}/".format(
-            url, version, command, query))
+            url, version, command, query),timeout=30)
         # Debug. Uncomment if needed
         # print(r.url)
 
@@ -106,7 +110,7 @@ def getRandomQuote():
     params = {'method':"getQuote",'format':"json",'lang':"en"}
 
     result_dict = dict(error="")
-    r = requests.post("{0}/{1}/".format(url, version), params=params)
+    r = requests.post("{0}/{1}/".format(url, version), params=params,timeout=30)
     if r.status_code == 200:
         result = r.json()
         result_dict = {
@@ -155,7 +159,7 @@ def getJishoPage(query):
     command = 'search/words'
     
     params = urllib.parse.urlencode(dict(keyword=query))
-    r = requests.get("{0}/{1}/{2}".format(url, version, command), params=params)
+    r = requests.get("{0}/{1}/{2}".format(url, version, command), params=params,timeout=30)
     if r.status_code == 200:
         return parseJishoPage(r.json(), wrapper)
     else:
@@ -209,7 +213,7 @@ def getRandomUkDoge():
     command = 'dog.php'
     params = dict(limit=1)
 
-    r = requests.get("{0}/{1}/{2}".format(url,version,command),params=params)
+    r = requests.get("{0}/{1}/{2}".format(url,version,command),params=params,timeout=30)
     if(r.status_code == 200):
         result = r.json()
         result_list = result.get('data', [])
@@ -219,3 +223,26 @@ def getRandomUkDoge():
     else:
         doge_wrapper['error'] = "Couldn't woof :sob: Error Code: " + str(r.status_code)
     return doge_wrapper
+
+def getMathJs(expr_list):
+    # Wrapper for our result
+        
+    
+    # POST Command
+    url = 'http://api.mathjs.org'
+    version = 'v1'
+    expr_dict = {'expr':[],'precision':4}
+    headers = {'content-type': 'application/json'}
+
+    if not type(expr_list) is str:
+        for expr in expr_list:
+            expr_dict['expr'].append(expr)
+    else:
+        expr_dict['expr'].append(expr_list)
+
+    expr_json = expr_dict
+    print(expr_json)
+    r = requests.post("{0}/{1}/".format(url, version), json=expr_json,timeout=30)
+    if r.status_code == 200:
+        return r.json()
+    return r.status_code

@@ -2,6 +2,9 @@ from random import randint
 import os
 import json
 
+def to_lower(string:str):
+    return string.lower()
+
 def getRandomInt(size:int):
     return randint(0, size - 1)
 
