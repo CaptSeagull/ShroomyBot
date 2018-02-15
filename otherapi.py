@@ -8,8 +8,6 @@ import commons
 
 def getPokemon(query=""):
     '''Retrive requested pokemon info from json file. If none exists, retrive from getPokemonFromApi(...) '''
-    # This is where we will store json results (from file or API)
-    pkmn_json = {}
     query = str(query).lower()
 
     # Retrieve relative path to the json file
@@ -22,16 +20,13 @@ def getPokemon(query=""):
     filepath = json_file_result.get('filepath',"/")
 
     # If json file was read, retrieve contents to see if pkmn entry exists
-    pkmn_json = json_file_result.get('json',{})
-    pkmn_result = pkmn_json.get(query, "")
+    pkmn_result = json_file_result.get('json',{}).get(query, "")
     if not pkmn_result:
         pkmn_result = getPokemonFromApi(query)
         # If there were issues earlier reading/creating the json file simply return the result
         # Otherwise, try to save the file if there was no error
         if not pkmn_result['error'] and has_file is True:
             commons.updateJsonFileContents(pkmn_result,query,filepath)
-    else:
-        pkmn_result.update({'error':""})
     return pkmn_result
 
 def getPokemonFromApi(query=""):
@@ -79,12 +74,11 @@ def getPokemonFromApi(query=""):
             # Default to MissingNo values if needed
             pkmn_id = result_dict.get('id', default_id)
             pkmn_name = result_dict.get('name', default_name)
-            pkmn_sprite = result_dict.get('sprites', dict(front_default="")).get('front_default',default_sprite)
-            
-            pkmn_types = []
-            pkmn_types_list = result_dict.get('types', [])
-            for pkmn_types_list_dict in pkmn_types_list:
-                pkmn_types.append( pkmn_types_list_dict.get('type',{}).get('name',"none") )
+            pkmn_sprite = result_dict.get(
+                'sprites', dict(front_default="")).get(
+                    'front_default',default_sprite)            
+            pkmn_types = [pkmn_types_list_dict.get('type',{}).get('name',"none")
+                          for pkmn_types_list_dict in result_dict.get('types', [])]
 
             # Add results to dict
             pkmn_wrapper.update({
@@ -110,7 +104,9 @@ def getRandomQuote():
     params = {'method':"getQuote",'format':"json",'lang':"en"}
 
     result_dict = dict(error="")
-    r = requests.post("{0}/{1}/".format(url, version), params=params,timeout=30)
+    r = requests.post("{0}/{1}/".format(url, version),
+                      params=params,
+                      timeout=30)
     if r.status_code == 200:
         result = r.json()
         result_dict = {
@@ -143,70 +139,57 @@ def getSpanishMiriamWebster(word, key_id=""):
 '''
 
 def getJishoPage(query):
-    # Dict for our results
-    wrapper = {
-        'writing':"",
-        'reading':"",
-        'definitions':[],
-        'speech_type':[],
-        'source':"http://jisho.org",
-        'error':""
-        }
-
     # GET command
     url = 'http://jisho.org/api'
     version = 'v1'
     command = 'search/words'
     
     params = urllib.parse.urlencode(dict(keyword=query))
-    r = requests.get("{0}/{1}/{2}".format(url, version, command), params=params,timeout=30)
+    r = requests.get("{0}/{1}/{2}".format(url, version, command),
+                     params=params,
+                     timeout=30)
     if r.status_code == 200:
-        return parseJishoPage(r.json(), wrapper)
+        return parseJishoPage(r.json())
     else:
         wrapper['error'] =  "Something else happened. Error Code: " + str(r.status_code)
     return wrapper
 
-def parseJishoPage(json, wrapper, result_index=0):
+def parseJishoPage(json, result_index=0):
+    wrapper = {'source':"http://jisho.org"}
+    
     data_list = json.get('data', [])
     data_size = len( data_list )
     
     if data_list:
-        if result_index > data_size - 1:
-            result_index = data_size - 1
+        # Get requested index. If size is smaller than index, get last index of the list
+        result_index = data_size - 1 if result_index > data_size - 1 else result_index
+        
         # Retrieve the result based on the result_index
         data_dict = data_list[result_index]
         jp_list = data_dict.get('japanese', [])
         senses_list = data_dict.get('senses', [])
+
+        # Retrieve first item of jp_list (should be only item)        
+        jp_dict = jp_list[0] if jp_list else {}
+        # Retrieve writing and reading
+        wrapper['writing'] = jp_dict.get('word', "")
+        wrapper['reading'] = jp_dict.get('reading', "")
+
+        # Retrieve first item of senses_list (should be only item)
+        senses_dict = senses_list[0] if senses_list else {}
+        eng_def_list = senses_dict.get('english_definitions', [])
+        speech_type_list = senses_dict.get('parts_of_speech', [])
         
-        if jp_list:
-            jp_dict = jp_list[0] # Retrieve first item (should be only item)
-
-            # Retrieve writing and reading
-            wrapper['writing'] = jp_dict.get('word', "")
-            wrapper['reading'] = jp_dict.get('reading', "")
-            
-        if senses_list:
-            senses_dict = senses_list[0] # Retrieve first item (should be only item)
-            eng_def_list = senses_dict.get('english_definitions', [])
-            speech_type_list = senses_dict.get('parts_of_speech', [])
-
-            # Retrieve english definitions
-            for eng_def in eng_def_list:
-                wrapper['definitions'].append(eng_def)
-            # Retrieve speech type
-            for speech in speech_type_list:
-                wrapper['speech_type'].append(speech)
-        return wrapper
-
-    wrapper['error'] = "No results found for the word requested."
+        # Retrieve english definitions and types of speech
+        wrapper['definitions'] = [eng_def for eng_def in eng_def_list]
+        wrapper['speech_type'] = [speech for speech in speech_type_list]
+    else:
+        wrapper['error'] = "No results found for the word requested."
+    
     return wrapper
 
 def getRandomUkDoge():
-    doge_wrapper = {
-        'doge_url':"",
-        'source':"https://thedogapi.co.uk",
-        'error':""
-        }
+    doge_wrapper = {'source':"https://thedogapi.co.uk"}
     
     url = 'https://api.thedogapi.co.uk'
     version = 'v2'
@@ -217,9 +200,7 @@ def getRandomUkDoge():
     if(r.status_code == 200):
         result = r.json()
         result_list = result.get('data', [])
-        if result_list:
-            result_data = result_list[0]
-            doge_wrapper['doge_url'] = result_data.get('url', "")
+        doge_wrapper['doge_url'] = result_list[0].get('url', "") if result_list else ""
     else:
         doge_wrapper['error'] = "Couldn't woof :sob: Error Code: " + str(r.status_code)
     return doge_wrapper

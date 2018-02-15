@@ -1,4 +1,5 @@
 from random import randint
+from decimal import Decimal
 import os
 import json
 
@@ -6,14 +7,33 @@ def to_lower(string:str):
     return string.lower()
 
 def getRandomInt(size:int):
-    return randint(0, size - 1)
+    return randint(0, size)
 
 def getRandomTuple(items):
-    if items:
-        pos = getRandomInt( len( items ) )
-        return items[pos]
-    return items
+    return items[ getRandomInt(len( items ) - 1)] if items else items
 
+def getRandomMathQuestion():
+    operations = ("+", "-", "*", "/")
+
+    f_num = getRandomInt(100)
+    l_num = getRandomInt(100)
+
+    if l_num == 0:
+        l_num = 1 # prevent black hole
+
+    action = getRandomTuple(operations)
+    expression = "{0}{1}{2}".format(str(f_num), str(action), str(l_num))
+    if action == "+":
+        answer = f_num + l_num
+    elif action == "-":
+        answer = f_num - l_num
+    elif action == "*":
+        answer = f_num * l_num
+    elif action == "/":
+        answer = round( Decimal(f_num/l_num) , 2)
+        expression += " and round it to the nearest hundredths"
+    return (expression, answer)
+                  
 def getJsonFromFile(directory:str="/",filename:str="",relative_dir:bool=False,filepath:str=None):
     result = {'success':True,'json':{},'filepath':""}
 
@@ -60,7 +80,7 @@ def updateJsonFileContents(result_dict:dict={},key_to_update:str=None,filepath:s
     if not result_dict:
         return False
 
-    dict_to_save = {}
+    dict_to_save = None
     
     # Create a copy so the original is intact
     result_copy = dict(result_dict)
