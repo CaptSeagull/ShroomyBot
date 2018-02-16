@@ -1,10 +1,11 @@
-# imports needed to run discord
-import discord
-from discord.ext.commands import Bot
-from discord.ext import commands
+# System imports
 import asyncio
 import platform
 from decimal import Decimal
+
+# imports needed to run discord
+import discord
+from discord.ext.commands import Bot
 
 # personal files
 import config
@@ -17,10 +18,11 @@ shroomy = Bot(description="Shroomy Bot " + config.version,
               command_prefix=config.prefix,
               pm_help=False)
 
+
 # Initialize event when Bot is first invited
 @shroomy.event
 async def on_ready():
-    print('Logged in as {0} (ID:{1})'.format(shroomy.user.name,shroomy.user.id))
+    print('Logged in as {0} (ID:{1})'.format(shroomy.user.name, shroomy.user.id))
     print('--------')
     print('Current Discord.py Version: {} | Current Python Version: {}'
           .format(discord.__version__, platform.python_version()))
@@ -32,6 +34,7 @@ async def on_ready():
           .format(shroomy.user.id))
     return await shroomy.change_presence(game=discord.Game(name=config.game))
 
+
 @shroomy.event
 async def on_message(message):
     # Only listen to messages from other people
@@ -40,42 +43,49 @@ async def on_message(message):
 
     if message.content.startswith(shroomy.user.mention):
         if "ask me" in message.content:
-            question, num_answer = commons.getRandomMathQuestion()
-            await shroomy.send_message(message.channel,
-                                       "Ok, {0}, what is {1}?"
-                                       .format(message.author.mention,question))
+            question, num_answer = commons.get_random_math_question()
+            await shroomy.send_message(
+                message.channel,
+                "Ok, {0}, what is {1}?".format(
+                    message.author.mention,
+                    question))
             try:
-                reply_message = await shroomy.wait_for_message(author=message.author,
-                                                         channel=message.channel,
-                                                         timeout=20.0)
+                reply_message = await shroomy.wait_for_message(
+                    author=message.author,
+                    channel=message.channel,
+                    timeout=20.0)
             except asyncio.TimeoutError:
                 pass
             if reply_message is None:
-                return await shroomy.send_message(message.channel,
-                                                  "Oh, sorry, you took too long. Try again")
+                return await shroomy.send_message(
+                    message.channel,
+                    "Oh, sorry, you took too long. Try again")
             message_text = reply_message.content
             if message_text:
                 try:
-                    reply = message_text.split(' ')[0] # only look at first word
+                    reply = message_text.split(' ')[0]  # only look at first word
                     num_input = Decimal(reply)
                 except ValueError:
                     pass
             bot_reply = "You replied with: {0}\n{1}".format(
-                num_input if num_input is not None # If input was a number, show
-                else reply, # Otherwise, display what was entered
-                "That's right! Thanks for playing!" # Result if right
-                if num_input is not None
-                and num_answer == num_input
+                num_input if (num_input is not None)  # If input was a number, show
+                else reply,  # Otherwise, display what was entered
+                "That's right! Thanks for playing!"  # Result if right
+                if (
+                        num_input is not None
+                        and num_answer == num_input
+                )
                 else ("Oh no that wasn't right..."
-                      "The answer is {0}!").format(num_answer) # Result if wrong
+                      "The answer is {0}!").format(num_answer)  # Result if wrong
                 )
             return await shroomy.send_message(message.channel, bot_reply)
         await shroomy.add_reaction(message, '\U0001F60D')
         await asyncio.sleep(1)
-        #ctx = await Bot.get_context("-poke {0}".format(message.author.mention))
-        #return await shroomy.invoke(ctx)
+        # ctx = await Bot.get_context("-poke {0}".format(message.author.mention))
+        # return await shroomy.invoke(ctx)
         return await shroomy.send_message(
-            message.channel, "Hello, {0}".format(message.author.mention))
+            message.channel,
+            "Hello, {0}".format(message.author.mention))
 
     return await shroomy.process_commands(message)
         
@@ -85,40 +95,44 @@ async def on_message(message):
 async def mood():
     """Generate text with a custom emoji from server"""
     # Retrieve a random item from custom emojis from the server
-    # Make sure the emojis are unrestriced otherwise they will be ignored
-    custom_emojis = [ emoji for emoji in shroomy.get_all_emojis() if not emoji.roles ]
+    # Make sure the emojis are unrestricted otherwise they will be ignored
+    custom_emojis = [emoji for emoji in shroomy.get_all_emojis() if not emoji.roles]
     
     if not custom_emojis:
-        return await shroomy.say(("Aww..."
-                                 "There's no custom emojis "
-                                 "I can express in this server."
-                                 " In that case my mood is :poop:"))
+        return await shroomy.say((
+            "Aww..."
+            "There's no custom emojis "
+            "I can express in this server."
+            " In that case my mood is :poop:"))
 
     # Retrieve random emoji retrieved from server and format it to be shown on chat.
-    emoji_string = discord_commons.formatEmoji(
-        commons.getRandomTuple(custom_emojis))
+    emoji_string = discord_commons.format_emoji(
+        commons.get_random_item(custom_emojis))
 
     # Display on Discord
     await shroomy.say("Hai, my current mood is... " + emoji_string)
     await asyncio.sleep(1)
     await shroomy.say("...for now anyways. Ask me again later.")
 
+
 # [choose] command.
 @shroomy.command()
 async def choose(*args):
     """Choose one or more items asked"""
-    items = [text.replace(',','') for text in args if text.lower() != "or"]
+    items = [text.replace(',', '') for text in args if text.lower() != "or"]
     size = len(items)
     if size == 0:
         return await shroomy.say("There wasn't anything to choose from. :cry:")
     elif size == 1:
-        return await shroomy.say("Well... I guess {0} since that's the only option!"
-                          .format(str(items[0])))
+        return await shroomy.say(
+            "Well... I guess {0} since that's the only option!".format(
+                str(items[0])))
     else:            
-        item_chosen = commons.getRandomTuple( items )
-        if(item_chosen == "me"):
+        item_chosen = commons.get_random_item(items)
+        if item_chosen == "me":
             item_chosen = "you"
-        return await shroomy.say("I choose... {0}!".format(str(item_chosen)))
+        return await shroomy.say("I choose... {0}!".format(
+            str(item_chosen)))
     
 
 # [goodbye] command. Logs the bot off discord if owner calls it;
@@ -134,24 +148,25 @@ async def goodbye(ctx):
     await shroomy.say("I'm logging off. Goodbye frineds!")
     await shroomy.close()
 
+
 # [poke] command. If entered a user who is not the sender nor the bot,
 # it will mention that the sender poked the user.
 # Otherwise, it will assume the sender is poking the bot.
-@shroomy.command(pass_context=True,aliases=['interact','hug','pet'])
-async def poke(ctx, member : discord.Member = None):
+@shroomy.command(pass_context=True, aliases=['interact', 'hug', 'pet'])
+async def poke(ctx, member: discord.Member = None):
     """ poke someone. Assumes itself if no mention.
 
         Can also use -interact, -hug, or -pet instead
     """
     action_dict = {
-        'poke':"poking",
-        'hug':"hugging",
-        'pet':"petting",
-        'interact':"interacting with"
+        'poke': "poking",
+        'hug': "hugging",
+        'pet': "petting",
+        'interact': "interacting with"
         }
     source = ctx.message.author
-    pokingBot = False if (member is not None and member != shroomy.user) else True
-    if pokingBot == True:
+    poking_bot = False if (member is not None and member != shroomy.user) else True
+    if poking_bot:
         await shroomy.say('Hello, {0}! You are {1} me!'
                           .format(source.mention,
                                   action_dict[ctx.invoked_with]))
@@ -161,12 +176,13 @@ async def poke(ctx, member : discord.Member = None):
                                   source.mention,
                                   action_dict[ctx.invoked_with]))
 
+
 # [pkmn]
 @shroomy.command()
-async def pkmn(*,pokemon=commons.getRandomInt(700)):
+async def pkmn(*, pokemon="MissingNo"):
     """Looks up pokemon of the given name"""
     msg = await shroomy.say("Ok, let me look it up...")
-    result_dict = otherapi.getPokemon(pokemon)
+    result_dict = otherapi.get_pokemon(pokemon)
     types = ", ".join((pkmn_type.title() for pkmn_type in result_dict['pkmn_types']))
     embed = discord.Embed(color=0x2b9b29)
     embed.add_field(name="Pokemon#{0}".format(result_dict['pkmn_id']),
@@ -178,7 +194,8 @@ async def pkmn(*,pokemon=commons.getRandomInt(700)):
     footer_text = "Pokemon found!"
     if result_dict.get('error', ""):
         footer_text = "Oops! | {0}".format(result_dict['error'])
-    return await shroomy.say(content=footer_text,embed=embed)
+    return await shroomy.say(content=footer_text, embed=embed)
+
 
 @shroomy.group(pass_context=True)
 async def say(ctx):
@@ -187,18 +204,18 @@ async def say(ctx):
         # if a phrase was passed, repeat what they said
         if ctx.subcommand_passed is not None:
             # remove the command from the phrase
-            msg = ctx.message.content[len( ctx.prefix+ctx.invoked_with ):].strip()
+            msg = ctx.message.content[len(ctx.prefix+ctx.invoked_with):].strip()
             embed = discord.Embed(color=0x2b9b29)
-            embed.add_field(name="I say...",value=msg, inline=False)
+            embed.add_field(name="I say...", value=msg, inline=False)
             embed.set_image(url=("https://cdn.discordapp.com/"
                                  "emojis/401429201976295424.png"))
             return await shroomy.say(embed=embed)
         
         # if no phrases passed, return a random quote
-        result_dict = otherapi.getRandomQuote()
+        result_dict = otherapi.get_random_quote()
         if not result_dict.get('error', ""):
             embed = discord.Embed(title="A quote for you...",
-                                  url=result_dict['source'],color=0x2b9b29)
+                                  url=result_dict['source'], color=0x2b9b29)
             embed.add_field(name="**{0}**".format(result_dict['author']),
                             value="{0}".format(result_dict['quote']), inline=False)
             return await shroomy.say(embed=embed)
@@ -206,11 +223,12 @@ async def say(ctx):
             return await shroomy.say(
                 content="O-oh | Failed: {0}".format(result_dict['error']))
 
+
 # PENDING #
 @say.command()
 async def woof():
     """Send a woof"""
-    result_dict = otherapi.getRandomUkDoge()
+    result_dict = otherapi.get_random_uk_doge()
     if not result_dict.get('error', ""):
         embed = discord.Embed(color=0x2b9b29)
         embed.set_image(url=result_dict['doge_url'])
@@ -221,17 +239,20 @@ async def woof():
     else:
         return await shroomy.say(content=":dog: | Failed: {0}"
                                  .format(result_dict['error']))
+
+
 @shroomy.group(pass_context=True)
 async def define(ctx):
     """type '-help define' for more"""
     if ctx.invoked_subcommand is None:
         return await shroomy.say("What should I define?")
 
+
 # [define jp]
 @define.command()
 async def jp(*, words=""):
     """Looks up a japanese definition"""
-    result_dict = otherapi.getJishoPage(words)
+    result_dict = otherapi.get_jisho_page(words)
     if not result_dict.get('error', ""):
         speech_types = '; '.join(result_dict['speech_type'])
         definitions = '\n'.join(("{0}. {1}".format(count, eng_def)
@@ -255,10 +276,11 @@ async def jp(*, words=""):
         await shroomy.say(embed=embed)
     else:
         await shroomy.say("Oops! | {0}".format(result_dict['error']))
-            
-# [echoNoCmd] command.
-@shroomy.command(pass_context=True,name='echo')
-async def __echoNoCmd(ctx, *args):
+
+
+# [__echo_no_cmd] command.
+@shroomy.command(pass_context=True, name='echo')
+async def __echo_no_cmd(ctx, *args):
     if config.dad not in ctx.message.author.name:
         return
     message = ' '.join(args)

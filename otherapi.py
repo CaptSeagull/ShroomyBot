@@ -1,13 +1,15 @@
-import requests
-import json
-from xml.etree import ElementTree
+# System imports
 import urllib
+
+# 3rd Party Imports
+import requests
 
 # Personal Library
 import commons
 
-def getPokemon(query=""):
-    '''Retrive requested pokemon info from json file. If none exists, retrive from getPokemonFromApi(...) '''
+
+def get_pokemon(query=""):
+    # Retrieve requested pokemon info from json file. If none exists, retrieve from get_pokemon_from_api(...)
     query = str(query).lower()
 
     # Retrieve relative path to the json file
@@ -15,22 +17,23 @@ def getPokemon(query=""):
     filename = "pkmn_names.json"
 
     # Read from the json file, create if needed
-    json_file_result = commons.getJsonFromFile(rel_path,filename,True)
-    has_file = json_file_result.get('success',False)
-    filepath = json_file_result.get('filepath',"/")
+    json_file_result = commons.get_json_from_file(rel_path, filename, True)
+    has_file = json_file_result.get('success', False)
+    filepath = json_file_result.get('filepath', "/")
 
     # If json file was read, retrieve contents to see if pkmn entry exists
-    pkmn_result = json_file_result.get('json',{}).get(query, "")
+    pkmn_result = json_file_result.get('json', {}).get(query, "")
     if not pkmn_result:
-        pkmn_result = getPokemonFromApi(query)
+        pkmn_result = get_pokemon_from_api(query)
         # If there were issues earlier reading/creating the json file simply return the result
         # Otherwise, try to save the file if there was no error
         if not pkmn_result['error'] and has_file is True:
-            commons.updateJsonFileContents(pkmn_result,query,filepath)
+            commons.update_file_to_json_contents(pkmn_result, query, filepath)
     return pkmn_result
 
-def getPokemonFromApi(query=""):
-    '''Retrieve pokemon info from PokeAPI '''
+
+def get_pokemon_from_api(query=""):
+    # Retrieve pokemon info from PokeAPI
     site_url = "https://pokeapi.co/"
     url = 'http://pokeapi.co/api'
     version = 'v2'
@@ -42,17 +45,17 @@ def getPokemonFromApi(query=""):
     # Default MissingNo values
     default_id = 0
     default_name = "MissingNo"
-    default_sprite = "" # To Do?
+    default_sprite = ""  # To Do?
     default_types = ["None"]
 
     # Wrapper to return result
     pkmn_wrapper = {
-        'pkmn_id':str( default_id ).zfill(pkmn_digits),
-        'pkmn_name':default_name,
-        'pkmn_sprite':default_sprite,
-        'pkmn_types':default_types,
-        'source':site_url,
-        'error':""
+        'pkmn_id': str(default_id).zfill(pkmn_digits),
+        'pkmn_name': default_name,
+        'pkmn_sprite': default_sprite,
+        'pkmn_types': default_types,
+        'source': site_url,
+        'error': ""
         }
 
     # If query is not empty
@@ -62,7 +65,7 @@ def getPokemonFromApi(query=""):
             return pkmn_wrapper
         
         r = requests.post("{0}/{1}/{2}/{3}/".format(
-            url, version, command, query),timeout=30)
+            url, version, command, query), timeout=30)
         # Debug. Uncomment if needed
         # print(r.url)
 
@@ -74,18 +77,18 @@ def getPokemonFromApi(query=""):
             # Default to MissingNo values if needed
             pkmn_id = result_dict.get('id', default_id)
             pkmn_name = result_dict.get('name', default_name)
-            pkmn_sprite = result_dict.get(
-                'sprites', dict(front_default="")).get(
-                    'front_default',default_sprite)            
-            pkmn_types = [pkmn_types_list_dict.get('type',{}).get('name',"none")
-                          for pkmn_types_list_dict in result_dict.get('types', [])]
+            pkmn_sprite_dict = result_dict.get('sprites', {})
+            pkmn_sprite = pkmn_sprite_dict.get('front_default', default_sprite)
+            pkmn_types_list = result_dict.get('types', [])
+            pkmn_types = [pkmn_types.get('type', {}).get('name', "none")
+                          for pkmn_types in pkmn_types_list]
 
             # Add results to dict
             pkmn_wrapper.update({
-                'pkmn_id':str( pkmn_id, ).zfill(pkmn_digits),
-                'pkmn_name':pkmn_name,
-                'pkmn_sprite':pkmn_sprite,
-                'pkmn_types':pkmn_types,
+                'pkmn_id': str(pkmn_id).zfill(pkmn_digits),
+                'pkmn_name': pkmn_name,
+                'pkmn_sprite': pkmn_sprite,
+                'pkmn_types': pkmn_types,
                 })
             
         elif r.status_code == 404:
@@ -97,26 +100,27 @@ def getPokemonFromApi(query=""):
         
     return pkmn_wrapper
 
-def getRandomQuote():
+
+def get_random_quote():
     site_url = "https://forismatic.com/en/"
     url = 'https://api.forismatic.com/api'
     version = '1.0/'
-    params = {'method':"getQuote",'format':"json",'lang':"en"}
+    params = {'method': "getQuote", 'format': "json", 'lang': "en"}
 
-    result_dict = dict(error="")
     r = requests.post("{0}/{1}/".format(url, version),
                       params=params,
                       timeout=30)
     if r.status_code == 200:
         result = r.json()
         result_dict = {
-            'quote':result.get('quoteText',""),
-            'author':result.get('quoteAuthor',""),
-            'source':result.get('quoteLink',site_url),
-            'error':""
+            'quote': result.get('quoteText', ""),
+            'author': result.get('quoteAuthor', ""),
+            'source': result.get('quoteLink', site_url),
+            'error': ""
             }
         return result_dict
     return dict(error="No quote found.")
+
 
 '''
 def getSpanishMiriamWebster(word, key_id=""):
@@ -138,7 +142,8 @@ def getSpanishMiriamWebster(word, key_id=""):
         return "Something else happened. Error Code: " + str(r.status_code)
 '''
 
-def getJishoPage(query):
+
+def get_jisho_page(query):
     # GET command
     url = 'http://jisho.org/api'
     version = 'v1'
@@ -149,20 +154,21 @@ def getJishoPage(query):
                      params=params,
                      timeout=30)
     if r.status_code == 200:
-        return parseJishoPage(r.json())
+        return parse_jisho_page(r.json())
     else:
-        wrapper['error'] =  "Something else happened. Error Code: " + str(r.status_code)
-    return wrapper
+        return dict(error=("Something else happened. Error Code: " + str(r.status_code)))
 
-def parseJishoPage(json, result_index=0):
-    wrapper = {'source':"http://jisho.org"}
+
+def parse_jisho_page(json, result_index=0):
+    wrapper = {'source': "http://jisho.org"}
     
     data_list = json.get('data', [])
-    data_size = len( data_list )
+    data_size = len(data_list)
     
     if data_list:
         # Get requested index. If size is smaller than index, get last index of the list
-        result_index = data_size - 1 if result_index > data_size - 1 else result_index
+        if result_index > data_size - 1:
+            result_index = data_size - 1
         
         # Retrieve the result based on the result_index
         data_dict = data_list[result_index]
@@ -181,41 +187,43 @@ def parseJishoPage(json, result_index=0):
         speech_type_list = senses_dict.get('parts_of_speech', [])
         
         # Retrieve english definitions and types of speech
-        wrapper['definitions'] = [eng_def for eng_def in eng_def_list]
-        wrapper['speech_type'] = [speech for speech in speech_type_list]
+        wrapper['definitions'] = (eng_def for eng_def in eng_def_list)
+        wrapper['speech_type'] = (speech for speech in speech_type_list)
     else:
         wrapper['error'] = "No results found for the word requested."
     
     return wrapper
 
-def getRandomUkDoge():
-    doge_wrapper = {'source':"https://thedogapi.co.uk"}
+
+def get_random_uk_doge():
+    doge_wrapper = {'source': "https://thedogapi.co.uk"}
     
     url = 'https://api.thedogapi.co.uk'
     version = 'v2'
     command = 'dog.php'
     params = dict(limit=1)
 
-    r = requests.get("{0}/{1}/{2}".format(url,version,command),params=params,timeout=30)
-    if(r.status_code == 200):
+    r = requests.get(
+        "{0}/{1}/{2}".format(url, version, command),
+        params=params,
+        timeout=30)
+    if r.status_code == 200:
         result = r.json()
-        result_list = result.get('data', [])
-        doge_wrapper['doge_url'] = result_list[0].get('url', "") if result_list else ""
+        result_list = result.get('data', [{}])[0]
+        doge_wrapper['doge_url'] = result_list.get('url', "")
     else:
         doge_wrapper['error'] = "Couldn't woof :sob: Error Code: " + str(r.status_code)
     return doge_wrapper
 
-def getMathJs(expr_list):
-    # Wrapper for our result
-        
-    
+
+def get_math_js(expr_list):
     # POST Command
     url = 'http://api.mathjs.org'
     version = 'v1'
-    expr_dict = {'expr':[],'precision':4}
-    headers = {'content-type': 'application/json'}
+    expr_dict = {'expr': [], 'precision': 4}
+    # headers = {'content-type': 'application/json'}
 
-    if not type(expr_list) is str:
+    if type(expr_list) is not str:
         for expr in expr_list:
             expr_dict['expr'].append(expr)
     else:
@@ -223,7 +231,10 @@ def getMathJs(expr_list):
 
     expr_json = expr_dict
     print(expr_json)
-    r = requests.post("{0}/{1}/".format(url, version), json=expr_json,timeout=30)
+    r = requests.post(
+        "{0}/{1}/".format(url, version),
+        json=expr_json,
+        timeout=30)
     if r.status_code == 200:
         return r.json()
     return r.status_code
