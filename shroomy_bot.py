@@ -224,6 +224,13 @@ async def say(ctx):
                 content="O-oh | Failed: {0}".format(result_dict['error']))
 
 
+@say.command()
+async def romaji(*, args="nani"):
+    """Converts words to kata/hira and vice versa"""
+
+    return
+
+
 # PENDING #
 @say.command()
 async def woof():
