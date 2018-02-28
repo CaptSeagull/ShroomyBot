@@ -257,6 +257,29 @@ async def woof():
 async def define(ctx):
     """type '-help define' for more"""
     if ctx.invoked_subcommand is None:
+        # if a phrase was passed, find its english definition
+        if ctx.subcommand_passed is not None:
+            # retrieve only the first word after the command
+            word = ctx.message.content.split(" ")[1]
+            result_dict = otherapi.get_dictionary(word, config.oxford_app_id, config.oxford_app_key)
+            if not result_dict.get('error', ""):
+                etymologies = '; '.join(result_dict['etymology'])
+                definitions = '\n'.join(("{0}. {1}".format(count, eng_def)
+                                         for count, eng_def
+                                         in enumerate(result_dict['definitions'], 1)))
+                embed = discord.Embed(color=0x2b9b29)
+                embed.add_field(name="Definition(s) found for", value=word, inline=True)
+                if etymologies:
+                    embed.add_field(name="Etymologies",
+                                    value=etymologies, inline=True)
+                if definitions:
+                    embed.add_field(name="Definition(s)",
+                                    value=definitions, inline=False)
+                embed.set_image(url=("https://cdn.discordapp.com/"
+                                     "emojis/401429201976295424.png"))
+                return await shroomy.say(embed=embed)
+            else:
+                return await shroomy.say("Oops! | {0}".format(result_dict['error']))
         return await shroomy.say("What should I define?")
 
 

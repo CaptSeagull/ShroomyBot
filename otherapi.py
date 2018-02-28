@@ -238,3 +238,33 @@ def get_math_js(expr_list):
     if r.status_code == 200:
         return r.json()
     return r.status_code
+
+
+def get_dictionary(word: str="", app_id: str="", app_key: str=""):
+    dict_wrapper = {'source': "https://www.oxforddictionaries.com"}
+    language = 'en'
+
+    url = 'https://od-api.oxforddictionaries.com:443/api/v1/entries/' + language + '/' + word.lower()
+
+    r = requests.get(url, headers={'app_id': app_id, 'app_key': app_key}, timeout=30)
+    if r.status_code == 200:
+        result = r.json()
+        results = result.get('results', [{}])
+        result_dict = results[0]
+
+        # Now retrieve the Lexical Entries, currently only retrieve the first entry
+        lexical_entries = result_dict.get('lexicalEntries', [{}])
+        entries = lexical_entries[0]
+        entries_list = entries.get('entries', [{}])
+        entries_item = entries_list[0]
+
+        # From the entries, retrieve its first entry
+        dict_wrapper['etymology'] = (etymology for etymology in entries_item.get('etymologies', []))
+        senses_list = entries_item.get('senses', [])
+        dict_wrapper['definitions'] = (senses_item.get('definitions', [""])[0] for senses_item in senses_list)
+    else:
+        dict_wrapper['error'] = "Couldn't find my dictionary :sob: | Error Code: " + str(r.status_code)
+    return dict_wrapper
+
+
+
