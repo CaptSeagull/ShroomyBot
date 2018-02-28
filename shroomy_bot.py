@@ -266,8 +266,7 @@ async def define(ctx):
                 etymologies = '; '.join(result_dict['etymology'])
                 definitions = '\n'.join(("{0}. {1}".format(count, eng_def)
                                          for count, eng_def
-                                         in enumerate(result_dict['definitions'], 1)
-                                         if not eng_def))
+                                         in enumerate(result_dict['definitions'], 1)))
                 embed = discord.Embed(color=0x2b9b29)
                 embed.add_field(name="Entry found for", value=word, inline=True)
                 if etymologies:

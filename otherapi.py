@@ -261,7 +261,10 @@ def get_dictionary(word: str="", app_id: str="", app_key: str=""):
         # From the entries, retrieve its first entry
         dict_wrapper['etymology'] = (etymology for etymology in entries_item.get('etymologies', []))
         senses_list = entries_item.get('senses', [])
-        dict_wrapper['definitions'] = (senses_item.get('definitions', [""])[0] for senses_item in senses_list)
+        dict_wrapper['definitions'] = (senses_item.get('definitions', [""])[0]
+                                       for senses_item
+                                       in senses_list
+                                       if senses_item.get('definitions'))
     else:
         dict_wrapper['error'] = "Couldn't find my dictionary :sob: Error Code: " + str(r.status_code)
     return dict_wrapper
