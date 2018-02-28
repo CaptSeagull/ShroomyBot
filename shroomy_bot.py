@@ -79,7 +79,7 @@ async def on_message(message):
                 )
             return await shroomy.send_message(message.channel, bot_reply)
         # await shroomy.add_reaction(message, '\U0001F60D')
-        await shroomy.sleep(1)
+        await asyncio.sleep(1)
         # ctx = await Bot.get_context("-poke {0}".format(message.author.mention))
         # return await shroomy.invoke(ctx)
         return await shroomy.send_message(

@@ -1,3 +1,5 @@
+import asyncio
+
 # imports needed to run discord
 import discord
 from discord.ext import commands
@@ -28,7 +30,7 @@ class BotQuery:
         footer_text = "Pokemon found!"
         if result_dict.get('error', ""):
             footer_text = "Oops! | {0}".format(result_dict['error'])
-        await self.bot.sleep(2)
+        await asyncio.sleep(2)
         return await self.bot.edit_message(msg, new_content=footer_text, embed=embed)
 
     @commands.group(pass_context=True)

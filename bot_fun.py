@@ -1,3 +1,5 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 
@@ -31,7 +33,7 @@ class BotFun:
 
         # Display on Discord
         await self.bot.say("Hai, my current mood is... " + emoji_string)
-        await self.bot.sleep(1)
+        await asyncio.sleep(1)
         await self.bot.say("...for now anyways. Ask me again later.")
 
     # [choose] command.
