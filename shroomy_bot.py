@@ -266,9 +266,10 @@ async def define(ctx):
                 etymologies = '; '.join(result_dict['etymology'])
                 definitions = '\n'.join(("{0}. {1}".format(count, eng_def)
                                          for count, eng_def
-                                         in enumerate(result_dict['definitions'], 1)))
+                                         in enumerate(result_dict['definitions'], 1)
+                                         if not eng_def))
                 embed = discord.Embed(color=0x2b9b29)
-                embed.add_field(name="Definition(s) found for", value=word, inline=True)
+                embed.add_field(name="Entry found for", value=word, inline=True)
                 if etymologies:
                     embed.add_field(name="Etymologies",
                                     value=etymologies, inline=True)
@@ -277,6 +278,7 @@ async def define(ctx):
                                     value=definitions, inline=False)
                 embed.set_image(url=("https://cdn.discordapp.com/"
                                      "emojis/401429201976295424.png"))
+                embed.set_footer(text="Made possible by {0}".format(result_dict['source']))
                 return await shroomy.say(embed=embed)
             else:
                 return await shroomy.say("Oops! | {0}".format(result_dict['error']))

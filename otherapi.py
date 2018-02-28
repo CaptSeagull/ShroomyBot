@@ -263,7 +263,7 @@ def get_dictionary(word: str="", app_id: str="", app_key: str=""):
         senses_list = entries_item.get('senses', [])
         dict_wrapper['definitions'] = (senses_item.get('definitions', [""])[0] for senses_item in senses_list)
     else:
-        dict_wrapper['error'] = "Couldn't find my dictionary :sob: | Error Code: " + str(r.status_code)
+        dict_wrapper['error'] = "Couldn't find my dictionary :sob: Error Code: " + str(r.status_code)
     return dict_wrapper
 
 
