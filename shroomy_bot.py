@@ -1,7 +1,7 @@
 # System imports
 import asyncio
 import platform
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 # imports needed to run discord
 import discord
@@ -65,8 +65,9 @@ async def on_message(message):
                 try:
                     reply = message_text.split(' ')[0]  # only look at first word
                     num_input = Decimal(reply)
-                except ValueError:
-                    pass
+                except InvalidOperation:
+                    reply = message_text
+                    num_input = None
             bot_reply = "You replied with: {0}\n{1}".format(
                 num_input if (num_input is not None)  # If input was a number, show
                 else reply,  # Otherwise, display what was entered
@@ -79,7 +80,7 @@ async def on_message(message):
                       "The answer is {0}!").format(num_answer)  # Result if wrong
                 )
             return await shroomy.send_message(message.channel, bot_reply)
-        await shroomy.add_reaction(message, '\U0001F60D')
+        # await shroomy.add_reaction(message, '\U0001F60D')
         await asyncio.sleep(1)
         # ctx = await Bot.get_context("-poke {0}".format(message.author.mention))
         # return await shroomy.invoke(ctx)
@@ -100,10 +101,9 @@ async def mood():
     
     if not custom_emojis:
         return await shroomy.say((
-            "Aww..."
-            "There's no custom emojis "
-            "I can express in this server."
-            " In that case my mood is :poop:"))
+            "Aww... "
+            "There's no custom emojis I can express in this server. "
+            "In that case my mood is :poop:"))
 
     # Retrieve random emoji retrieved from server and format it to be shown on chat.
     emoji_string = discord_commons.format_emoji(
@@ -194,7 +194,9 @@ async def pkmn(*, pokemon="MissingNo"):
     footer_text = "Pokemon found!"
     if result_dict.get('error', ""):
         footer_text = "Oops! | {0}".format(result_dict['error'])
-    return await shroomy.say(content=footer_text, embed=embed)
+    await asyncio.sleep(2)
+    return await shroomy.edit_message(msg, new_content=footer_text, embed=embed)
+    # return await shroomy.say(content=footer_text, embed=embed)
 
 
 @shroomy.group(pass_context=True)
@@ -227,7 +229,10 @@ async def say(ctx):
 @say.command()
 async def romaji(*, args="nani"):
     """Converts words to kata/hira and vice versa"""
-
+    embed = discord.Embed(color=0x2b9b29)
+    embed.set_image(url=("https://cdn.discordapp.com/"
+                         "emojis/401429201976295424.png"))
+    return await shroomy.say(content=args, embed=embed)
     return
 
 
@@ -288,11 +293,15 @@ async def jp(*, words=""):
 # [__echo_no_cmd] command.
 @shroomy.command(pass_context=True, name='echo')
 async def __echo_no_cmd(ctx, *args):
-    if config.dad not in ctx.message.author.name:
-        return
+    # if config.dad not in ctx.message.author.name:
+    #    return
     message = ' '.join(args)
+    print(ctx.message.author.name + " called echo: " + ctx.message.content)
     await shroomy.delete_message(ctx.message)
-    await asyncio.sleep(1)
-    await shroomy.say(message)
+    embed = discord.Embed(color=0x2b9b29)
+    embed.add_field(name="Hey!", value=message, inline=False)
+    embed.set_image(url=("https://cdn.discordapp.com/"
+                         "emojis/401429201976295424.png"))
+    return await shroomy.say(embed=embed)
 
 shroomy.run(config.app_id)
