@@ -87,7 +87,7 @@ class BotFun:
         poking_bot = False if (member is not None and member != self.bot.user) else True
         poker_bot = True if (member is not None and member == source) else False
         if not poking_bot and poker_bot:
-            await self.bot.say('I\'m {0} you, {1}!'
+            await self.bot.say('I\'m {1} you, {0}!'
                                .format(source.mention,
                                        action_dict[ctx.invoked_with]))
         elif poking_bot:
