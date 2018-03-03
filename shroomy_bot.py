@@ -35,10 +35,13 @@ async def on_ready():
 
 
 def is_owner(ctx):
-    """Check if the caller is the ownder. Useful for having owner only commands."""
+    """
+    \"""Check if the caller is the ownder. Useful for having owner only commands.\"""
     if ctx.message.author.id == shroomy.application_info().owner:
         return True
     return False
+    """
+    return True
 
 
 @shroomy.event
