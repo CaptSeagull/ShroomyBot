@@ -9,7 +9,7 @@ import config
 import otherapi
 
 
-class BotQuery:
+class query:
     def __init__(self, bot):
         self.bot = bot
 
@@ -140,4 +140,4 @@ class BotQuery:
 
 
 def setup(bot):
-    bot.add_cog(BotQuery(bot))
+    bot.add_cog(query(bot))

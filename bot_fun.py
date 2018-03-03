@@ -1,6 +1,7 @@
 import asyncio
 
 import discord
+from decimal import Decimal, InvalidOperation
 from discord.ext import commands
 
 # personal files
@@ -9,7 +10,7 @@ import commons
 import discord_commons
 
 
-class BotFun:
+class fun:
     def __init__(self, bot):
         self.bot = bot
 
@@ -71,7 +72,7 @@ class BotFun:
     # [poke] command. If entered a user who is not the sender nor the bot,
     # it will mention that the sender poked the user.
     # Otherwise, it will assume the sender is poking the bot.
-    @commands.command(pass_context=True, aliases=['interact', 'hug', 'pet'])
+    @commands.command(pass_context=True, aliases=['interact', 'hug', 'pet', 'pat'])
     async def poke(self, ctx, member: discord.Member = None):
         """ poke someone. Assumes itself if no mention.
 
@@ -81,6 +82,7 @@ class BotFun:
             'poke': "poking",
             'hug': "hugging",
             'pet': "petting",
+            'pat': "patting",
             'interact': "interacting with"
         }
         source = ctx.message.author
@@ -100,6 +102,56 @@ class BotFun:
                                        source.mention,
                                        action_dict[ctx.invoked_with]))
 
+    @commands.group(pass_context=True)
+    async def ask(self, ctx):
+        if ctx.invoked_subcommand is None:
+            ctx.message += 'me'
+            return self.bot.process_commands(ctx)
+
+    @ask.command(pass_context=True)
+    async def me(self, ctx):
+        """Asks you a math question.
+
+        Careful, you are timed!
+        """
+        question, num_answer = commons.get_random_math_question()
+        await self.bot.say(
+            "Ok, {0}, what is {1}?".format(
+                ctx.author.mention,
+                question))
+        try:
+            reply_message = await self.bot.wait_for_message(
+                author=ctx.author,
+                channel=ctx.channel,
+                timeout=20.0)
+        except asyncio.TimeoutError:
+            reply_message = None
+            pass
+        if reply_message is None:
+            return await self.bot.say(
+                "Oh, sorry, you took too long. Try again")
+        message_text = reply_message.content
+        reply = message_text
+        num_input = None
+        if message_text:
+            try:
+                reply = message_text.split(' ')[0]  # only look at first word
+                num_input = Decimal(reply)
+            except InvalidOperation:
+                pass
+        bot_reply = "You replied with: {0}\n{1}".format(
+            num_input if (num_input is not None)  # If input was a number, show
+            else reply,  # Otherwise, display what was entered
+            "That's right! Thanks for playing!"  # Result if right
+            if (
+                    num_input is not None
+                    and num_answer == num_input
+            )
+            else ("Oh no that wasn't right..."
+                  "The answer is {0}!").format(num_answer)  # Result if wrong
+        )
+        return await self.bot.say(bot_reply)
+
 
 def setup(bot):
-    bot.add_cog(BotFun(bot))
+    bot.add_cog(fun(bot))

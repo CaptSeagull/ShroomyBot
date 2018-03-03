@@ -27,10 +27,18 @@ async def on_ready():
     print('--------')
     print('Current Version: {0}'.format(config.version))
     print('--------')
+    print('debug: ' + shroomy.application_info().owner)
     print('Use this link to invite {}:'.format(shroomy.user.name))
     print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8'
           .format(shroomy.user.id))
     return await shroomy.change_presence(game=discord.Game(name=config.game))
+
+
+def is_owner(ctx):
+    """Check if the caller is the ownder. Useful for having owner only commands."""
+    if ctx.message.author.id == shroomy.application_info().owner:
+        return True
+    return False
 
 
 @shroomy.event
@@ -41,43 +49,8 @@ async def on_message(message):
 
     if message.content.startswith(shroomy.user.mention):
         if "ask me" in message.content:
-            question, num_answer = commons.get_random_math_question()
-            await shroomy.send_message(
-                message.channel,
-                "Ok, {0}, what is {1}?".format(
-                    message.author.mention,
-                    question))
-            try:
-                reply_message = await shroomy.wait_for_message(
-                    author=message.author,
-                    channel=message.channel,
-                    timeout=20.0)
-            except asyncio.TimeoutError:
-                pass
-            if reply_message is None:
-                return await shroomy.send_message(
-                    message.channel,
-                    "Oh, sorry, you took too long. Try again")
-            message_text = reply_message.content
-            if message_text:
-                try:
-                    reply = message_text.split(' ')[0]  # only look at first word
-                    num_input = Decimal(reply)
-                except InvalidOperation:
-                    reply = message_text
-                    num_input = None
-            bot_reply = "You replied with: {0}\n{1}".format(
-                num_input if (num_input is not None)  # If input was a number, show
-                else reply,  # Otherwise, display what was entered
-                "That's right! Thanks for playing!"  # Result if right
-                if (
-                        num_input is not None
-                        and num_answer == num_input
-                )
-                else ("Oh no that wasn't right..."
-                      "The answer is {0}!").format(num_answer)  # Result if wrong
-                )
-            return await shroomy.send_message(message.channel, bot_reply)
+            message.content = config.prefix + "ask me"
+            return shroomy.process_commands(message)
         # await shroomy.add_reaction(message, '\U0001F60D')
         await asyncio.sleep(1)
         # ctx = await Bot.get_context("-poke {0}".format(message.author.mention))
@@ -89,8 +62,29 @@ async def on_message(message):
     return await shroomy.process_commands(message)
 
 
+@shroomy.check(is_owner)
+@shroomy.command(hidden=True)
+async def load(extension_name: str):
+    """Loads an extension."""
+    try:
+        shroomy.load_extension(extension_name)
+    except (AttributeError, ImportError) as e:
+        await shroomy.whisper("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+        return
+    await shroomy.say("{} loaded.".format(extension_name))
+
+
+@shroomy.check(is_owner)
+@shroomy.command(hidden=True)
+async def unload(extension_name: str):
+    """Unloads an extension."""
+    shroomy.unload_extension(extension_name)
+    await shroomy.whisper("{} unloaded.".format(extension_name))
+
+
 # [__echo_no_cmd] command.
-@shroomy.command(pass_context=True, name='echo')
+@shroomy.check(is_owner)
+@shroomy.command(pass_context=True, name='echo', hidden=True)
 async def __echo_no_cmd(ctx, *args):
     # if config.dad not in ctx.message.author.name:
     #    return
