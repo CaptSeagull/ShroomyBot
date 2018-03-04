@@ -1,7 +1,6 @@
 # System imports
 import asyncio
 import platform
-from decimal import Decimal, InvalidOperation
 
 # imports needed to run discord
 import discord
@@ -9,7 +8,6 @@ from discord.ext.commands import Bot
 
 # personal files
 import config
-import commons
 
 # Initialize our Bot
 shroomy = Bot(description="Shroomy Bot " + config.version,
@@ -27,7 +25,6 @@ async def on_ready():
     print('--------')
     print('Current Version: {0}'.format(config.version))
     print('--------')
-    print('debug: ' + shroomy.application_info().owner)
     print('Use this link to invite {}:'.format(shroomy.user.name))
     print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8'
           .format(shroomy.user.id))

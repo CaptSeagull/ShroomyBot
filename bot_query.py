@@ -30,7 +30,6 @@ class query:
         footer_text = "Pokemon found!"
         if result_dict.get('error', ""):
             footer_text = "Oops! | {0}".format(result_dict['error'])
-        await asyncio.sleep(2)
         return await self.bot.edit_message(msg, new_content=footer_text, embed=embed)
 
     @commands.group(pass_context=True)

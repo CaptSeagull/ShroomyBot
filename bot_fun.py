@@ -105,8 +105,7 @@ class fun:
     @commands.group(pass_context=True)
     async def ask(self, ctx):
         if ctx.invoked_subcommand is None:
-            ctx.message += 'me'
-            return self.bot.process_commands(ctx)
+            return self.bot.say(ctx.message)
 
     @ask.command(pass_context=True)
     async def me(self, ctx):
@@ -117,11 +116,11 @@ class fun:
         question, num_answer = commons.get_random_math_question()
         await self.bot.say(
             "Ok, {0}, what is {1}?".format(
-                ctx.author.mention,
+                ctx.message.author.mention,
                 question))
         try:
             reply_message = await self.bot.wait_for_message(
-                author=ctx.author,
+                author=ctx.message.author,
                 channel=ctx.channel,
                 timeout=20.0)
         except asyncio.TimeoutError:
