@@ -121,7 +121,7 @@ class fun:
         try:
             reply_message = await self.bot.wait_for_message(
                 author=ctx.message.author,
-                channel=ctx.channel,
+                channel=ctx.message.channel,
                 timeout=20.0)
         except asyncio.TimeoutError:
             reply_message = None
