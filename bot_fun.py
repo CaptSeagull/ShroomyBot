@@ -14,6 +14,12 @@ class fun:
     def __init__(self, bot):
         self.bot = bot
 
+    async def on_message(self, message):
+        if message.content.startswith(self.bot.user.mention):
+            if "ask me" in message.content:
+                message.content = config.prefix + "ask me"
+                return await self.ask_math(message)
+
     # [mood] command. Generates random mood whenever it is called.
     @commands.command()
     async def mood(self):
@@ -105,7 +111,7 @@ class fun:
     @commands.group(pass_context=True)
     async def ask(self, ctx):
         if ctx.invoked_subcommand is None:
-            return self.bot.say(ctx.message)
+            return await self.ask_math(ctx.message)
 
     @ask.command(pass_context=True)
     async def me(self, ctx):
@@ -113,15 +119,18 @@ class fun:
 
         Careful, you are timed!
         """
+        await self.ask_math(self, ctx.message)
+
+    async def ask_math(self, message):
         question, num_answer = commons.get_random_math_question()
         await self.bot.say(
             "Ok, {0}, what is {1}?".format(
-                ctx.message.author.mention,
+                message.author.mention,
                 question))
         try:
             reply_message = await self.bot.wait_for_message(
-                author=ctx.message.author,
-                channel=ctx.message.channel,
+                author=message.author,
+                channel=message.channel,
                 timeout=20.0)
         except asyncio.TimeoutError:
             reply_message = None

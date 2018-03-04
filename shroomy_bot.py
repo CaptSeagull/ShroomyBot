@@ -48,9 +48,6 @@ async def on_message(message):
         return
 
     if message.content.startswith(shroomy.user.mention):
-        if "ask me" in message.content:
-            message.content = config.prefix + "ask me"
-            return shroomy.process_commands(message)
         # await shroomy.add_reaction(message, '\U0001F60D')
         await asyncio.sleep(1)
         # ctx = await Bot.get_context("-poke {0}".format(message.author.mention))
