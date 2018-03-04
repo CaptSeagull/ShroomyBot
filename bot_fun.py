@@ -119,7 +119,7 @@ class fun:
 
         Careful, you are timed!
         """
-        await self.ask_math(self, ctx.message)
+        await self.ask_math(ctx.message)
 
     async def ask_math(self, message):
         question, num_answer = commons.get_random_math_question()

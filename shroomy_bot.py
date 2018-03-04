@@ -47,14 +47,6 @@ async def on_message(message):
     if message.author == shroomy.user:
         return
 
-    if message.content.startswith(shroomy.user.mention):
-        # await shroomy.add_reaction(message, '\U0001F60D')
-        await asyncio.sleep(1)
-        # ctx = await Bot.get_context("-poke {0}".format(message.author.mention))
-        # return await shroomy.invoke(ctx)
-        return await shroomy.send_message(
-            message.channel,
-            "Hello, {0}".format(message.author.mention))
 
     return await shroomy.process_commands(message)
 
