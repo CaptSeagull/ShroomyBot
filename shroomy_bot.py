@@ -1,9 +1,9 @@
 # System imports
-import asyncio
 import platform
 
 # imports needed to run discord
 import discord
+from discord.ext import commands
 from discord.ext.commands import Bot
 
 # personal files
@@ -31,11 +31,11 @@ async def on_ready():
     return await shroomy.change_presence(game=discord.Game(name=config.game))
 
 
-def is_owner(ctx):
+def is_owner():
     """Check if the caller is the ownder. Useful for having owner only commands."""
-    if ctx.message.author.id == config.owner_id:
-        return True
-    return False
+    async def predicate(ctx):
+        return ctx.author.id == config.owner_id
+    return commands.check(predicate)
 
 
 @shroomy.event
@@ -47,7 +47,7 @@ async def on_message(message):
     return await shroomy.process_commands(message)
 
 
-@shroomy.check(is_owner)
+@is_owner()
 @shroomy.command(hidden=True)
 async def load(extension_name: str):
     """Loads an extension."""
@@ -59,7 +59,7 @@ async def load(extension_name: str):
     await shroomy.say("{} loaded.".format(extension_name))
 
 
-@shroomy.check(is_owner)
+@is_owner()
 @shroomy.command(hidden=True)
 async def unload(extension_name: str):
     """Unloads an extension."""
@@ -68,7 +68,7 @@ async def unload(extension_name: str):
 
 
 # [__echo_no_cmd] command.
-@shroomy.check(is_owner)
+@is_owner()
 @shroomy.command(pass_context=True, name='echo', hidden=True)
 async def __echo_no_cmd(ctx, *args):
     # if config.dad not in ctx.message.author.name:
