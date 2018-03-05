@@ -17,7 +17,6 @@ class fun:
     async def on_message(self, message):
         if message.content.startswith(self.bot.user.mention):
             if "ask me" in message.content:
-                message.content = config.prefix + "ask me"
                 return await self.ask_math(message)
 
     # [mood] command. Generates random mood whenever it is called.

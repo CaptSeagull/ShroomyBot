@@ -1,6 +1,7 @@
 import os
 
 app_id = os.getenv('BOT_TOKEN')
+owner_id = os.getenv('OWNER_ID')
 version = os.getenv('VERSION')
 prefix = os.getenv('PREFIX')
 dad = os.getenv('DAD')

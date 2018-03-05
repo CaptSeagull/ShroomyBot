@@ -32,13 +32,10 @@ async def on_ready():
 
 
 def is_owner(ctx):
-    """
-    \"""Check if the caller is the ownder. Useful for having owner only commands.\"""
-    if ctx.message.author.id == shroomy.application_info().owner:
+    """Check if the caller is the ownder. Useful for having owner only commands."""
+    if ctx.message.author.id == config.owner_id:
         return True
     return False
-    """
-    return True
 
 
 @shroomy.event
@@ -46,7 +43,6 @@ async def on_message(message):
     # Only listen to messages from other people
     if message.author == shroomy.user:
         return
-
 
     return await shroomy.process_commands(message)
 
