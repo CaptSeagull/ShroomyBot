@@ -34,7 +34,7 @@ async def on_ready():
 def is_owner():
     """Check if the caller is the ownder. Useful for having owner only commands."""
     async def predicate(ctx):
-        return ctx.author.id == config.owner_id
+        return await ctx.author.id == config.owner_id
     return commands.check(predicate)
 
 

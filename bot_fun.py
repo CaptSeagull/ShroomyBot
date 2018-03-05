@@ -14,10 +14,12 @@ class fun:
     def __init__(self, bot):
         self.bot = bot
 
+    """
     async def on_message(self, message):
         if message.content.startswith(self.bot.user.mention):
             if "ask me" in message.content:
                 return await self.ask_math(message)
+    """
 
     # [mood] command. Generates random mood whenever it is called.
     @commands.command()
