@@ -31,11 +31,8 @@ async def on_ready():
     return await shroomy.change_presence(game=discord.Game(name=config.game))
 
 
-def is_owner():
-    """Check if the caller is the ownder. Useful for having owner only commands."""
-    async def predicate(ctx):
-        return await ctx.author.id == config.owner_id
-    return commands.check(predicate)
+def is_owner(ctx):
+    return ctx.message.author.id == config.owner_id
 
 
 @shroomy.event
@@ -47,7 +44,7 @@ async def on_message(message):
     return await shroomy.process_commands(message)
 
 
-@is_owner()
+@commands.check(is_owner)
 @shroomy.command(hidden=True)
 async def load(extension_name: str):
     """Loads an extension."""
@@ -56,10 +53,10 @@ async def load(extension_name: str):
     except (AttributeError, ImportError) as e:
         await shroomy.whisper("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
         return
-    await shroomy.say("{} loaded.".format(extension_name))
+    await shroomy.whisper("{} loaded.".format(extension_name))
 
 
-@is_owner()
+@commands.check(is_owner)
 @shroomy.command(hidden=True)
 async def unload(extension_name: str):
     """Unloads an extension."""
@@ -67,8 +64,21 @@ async def unload(extension_name: str):
     await shroomy.whisper("{} unloaded.".format(extension_name))
 
 
+@commands.check(is_owner)
+@shroomy.command(hidden=True)
+async def reload(extension_name: str):
+    """Unloads THEN loads an extension."""
+    try:
+        shroomy.unload_extension(extension_name)
+        shroomy.load_extension(extension_name)
+    except Exception as ex:
+        exce = '{}: {}'.format(type(ex).__name__, ex)
+        print('Failed to load extension {}\n{}'.format(extension_name, exce))
+    return await shroomy.whisper("{} reloaded.".format(extension_name))
+
+
 # [__echo_no_cmd] command.
-@is_owner()
+@commands.check(is_owner)
 @shroomy.command(pass_context=True, name='echo', hidden=True)
 async def __echo_no_cmd(ctx, *args):
     # if config.dad not in ctx.message.author.name:
@@ -83,7 +93,7 @@ async def __echo_no_cmd(ctx, *args):
     return await shroomy.say(embed=embed)
 
 
-if __name__ == "__main__":
+def run():
     for extension in config.bot_extensions:
         try:
             shroomy.load_extension(extension)
@@ -92,3 +102,7 @@ if __name__ == "__main__":
             print('Failed to load extension {}\n{}'.format(extension, exc))
 
     shroomy.run(config.app_id)
+
+
+if __name__ == "__main__":
+    run()

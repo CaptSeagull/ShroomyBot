@@ -14,12 +14,10 @@ class fun:
     def __init__(self, bot):
         self.bot = bot
 
-    """
     async def on_message(self, message):
         if message.content.startswith(self.bot.user.mention):
             if "ask me" in message.content:
                 return await self.ask_math(message)
-    """
 
     # [mood] command. Generates random mood whenever it is called.
     @commands.command()
@@ -69,10 +67,10 @@ class fun:
     @commands.command(pass_context=True)
     async def goodbye(self, ctx):
         """Sends a goodbye text; stops if host"""
-        if config.dad not in ctx.message.author.name:
+        if ctx.message.author.id != config.owner_id:
             return await self.bot.say("Oh! Goodbye, "
-                                     + ctx.message.author.mention
-                                     + "! See you again soon.")
+                                      + ctx.message.author.mention
+                                      + "! See you again soon.")
         await self.bot.say("I'm logging off. Goodbye frineds!")
         await self.bot.close()
 
@@ -124,7 +122,8 @@ class fun:
 
     async def ask_math(self, message):
         question, num_answer = commons.get_random_math_question()
-        await self.bot.say(
+        await self.bot.send_message(
+            message.channel,
             "Ok, {0}, what is {1}?".format(
                 message.author.mention,
                 question))
@@ -159,7 +158,7 @@ class fun:
             else ("Oh no that wasn't right..."
                   "The answer is {0}!").format(num_answer)  # Result if wrong
         )
-        return await self.bot.say(bot_reply)
+        return await self.bot.send_message(message.channel, bot_reply)
 
 
 def setup(bot):
