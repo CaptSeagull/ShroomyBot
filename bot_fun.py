@@ -8,6 +8,7 @@ from discord.ext import commands
 import config
 import commons
 import discord_commons
+from postgres_handler import KyonCoin
 
 
 class fun:
@@ -120,6 +121,13 @@ class fun:
         """
         await self.ask_math(ctx.message)
 
+    @commands.group(pass_context=True)
+    async def kyon(self, ctx):
+        kyoncoin = KyonCoin()
+        if ctx.invoked_subcommand is None:
+            coins = kyoncoin.get_coins(ctx.message.server.id, ctx.message.author.id)
+            return await self.bot.say("{0}, you have {1} coin(s)".format(ctx.message.author.mention, coins))
+
     async def ask_math(self, message):
         question, num_answer = commons.get_random_math_question()
         await self.bot.send_message(
@@ -158,6 +166,9 @@ class fun:
             else ("Oh no that wasn't right..."
                   "The answer is {0}!").format(num_answer)  # Result if wrong
         )
+        if num_input is not None and num_answer == num_input:
+            kyoncoin = KyonCoin()
+            kyoncoin.update_coins(message.server.id, message.author.id, 1)
         return await self.bot.send_message(message.channel, bot_reply)
 
 
