@@ -45,7 +45,7 @@ class KyonCoin(PostgresHandler):
                 result_one = curs.fetchone()
                 if result_one:
                     amount += result_one[0]
-                    curs.execute(self.update_coins_query, (server_id, user_id, amount))
+                    curs.execute(self.update_coins_query, (amount, server_id, user_id))
                 else:
                     curs.execute(self.insert_coins_query, (server_id, user_id, amount))
                 conn.commit()
