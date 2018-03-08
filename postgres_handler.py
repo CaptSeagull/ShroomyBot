@@ -12,60 +12,6 @@ class PostgresHandler:
     def connect(self):
         return psycopg2.connect(dbname=self.dbname, user=self.username, password=self.password, host=self.host)
 
-    def init_tables(self):
-        conn = self.connect()
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute("""
-                CREATE TABLE IF NOT EXISTS kyoncoin (
-                    id	SERIAL PRIMARY KEY,
-                    server_id VARCHAR(25) NOT NULL,
-                    user_id VARCHAR(25) NOT NULL,
-                    coin_amount INT NOT NULL DEFAULT 0,
-                    last_updated TIMESTAMP NOT NULL DEFAULT NOW(),
-                    active BOOLEAN NOT NULL DEFAULT 'true');
-                    """)
-                curs.execute("""
-                CREATE TABLE IF NOT EXISTS math_record (
-                    id SERIAL PRIMARY KEY,
-                    server_id VARCHAR(25) NOT NULL,
-                    user_id VARCHAR(25) NOT NULL,
-                    success_count INT NOT NULL DEFAULT 0,
-                    failed_count INT NOT NULL DEFAULT 0,
-                    lastModified TIMESTAMP NOT NULL DEFAULT NOW(),
-                    active BOOLEAN NOT NULL DEFAULT 'true');
-                    """)
-                curs.execute("""
-                CREATE TABLE IF NOT EXISTS pkmn_type (
-                    id SERIAL PRIMARY KEY,
-                    name VARCHAR(10) NOT NULL);
-                    """)
-                curs.execute("""
-                INSERT INTO pkmn_type (name) VALUES
-                    ('normal'), ('fire'),
-                    ('fighting'), ('water'), 
-                    ('flying'), ('grass'), 
-                    ('poison'), ('electric'), 
-                    ('ground'), ('psychic'), 
-                    ('rock'), ('ice'), 
-                    ('bug'), ('dragon'),
-                    ('ghost'), ('dark'),
-                    ('steel'), ('fairy'),
-                    ('???');
-                    """)
-                curs.execute("""
-                CREATE TABLE IF NOT EXISTS pkmn_info (
-                id SERIAL PRIMARY KEY,
-                pokedex_id INT NOT NULL,
-                name VARCHAR(50) NOT NULL,
-                type_one INT NOT NULL REFERENCES pkmn_type(id) ON DELETE RESTRICT,
-                type_two INT NULL REFERENCES pkmn_type(id) ON DELETE RESTRICT,
-                sprite_ref TEXT NULL);
-                """)
-
-        conn.commit()
-        conn.close()
-
 
 class KyonCoin(PostgresHandler):
     def __init__(self):
@@ -76,13 +22,14 @@ class KyonCoin(PostgresHandler):
         self.update_coins_query = "update kyoncoin set coin_amount = %s where server_id=%s and user_id=%s"
 
     def get_coins(self, server_id, user_id):
+        """Retrieves coin amount for a given user in a given server."""
         coins = 0
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:
                 curs.execute(self.select_coins_query, (server_id, user_id))
                 result_one = curs.fetchone()
-                conn.rollback()
+                conn.rollback()  # Rollback so table won't be stuck on idle
                 if result_one:
                     coins = result_one[0]
 
@@ -90,6 +37,7 @@ class KyonCoin(PostgresHandler):
         return coins
 
     def update_coins(self, server_id, user_id, amount):
+        """Adds the coin amount (if exists) on the database for a given user in a given server."""
         conn = self.connect()
         with conn:
             with conn.cursor() as curs:
@@ -103,3 +51,4 @@ class KyonCoin(PostgresHandler):
                 conn.commit()
 
         conn.close()
+        return amount

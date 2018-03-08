@@ -123,10 +123,11 @@ class fun:
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):
-        kyoncoin = KyonCoin()
+        """Shows how many coins you have."""
         if ctx.invoked_subcommand is None:
+            kyoncoin = KyonCoin()
             coins = kyoncoin.get_coins(ctx.message.server.id, ctx.message.author.id)
-            return await self.bot.say("{0}, you have {1} coin(s)".format(ctx.message.author.mention, coins))
+            return await self.bot.say("{0}, you have {1} KyonCoins".format(ctx.message.author.mention, coins))
 
     async def ask_math(self, message):
         question, num_answer = commons.get_random_math_question()
@@ -155,21 +156,20 @@ class fun:
                 num_input = Decimal(reply)
             except InvalidOperation:
                 pass
+        answer_correct = num_input is not None and num_answer == num_input
         bot_reply = "You replied with: {0}\n{1}".format(
             num_input if (num_input is not None)  # If input was a number, show
             else reply,  # Otherwise, display what was entered
             "That's right! Thanks for playing!"  # Result if right
-            if (
-                    num_input is not None
-                    and num_answer == num_input
-            )
+            if answer_correct
             else ("Oh no that wasn't right..."
                   "The answer is {0}!").format(num_answer)  # Result if wrong
         )
-        if num_input is not None and num_answer == num_input:
+        await self.bot.send_message(message.channel, bot_reply)
+        if answer_correct:
             kyoncoin = KyonCoin()
-            kyoncoin.update_coins(message.server.id, message.author.id, 1)
-        return await self.bot.send_message(message.channel, bot_reply)
+            coins = kyoncoin.update_coins(message.server.id, message.author.id, 1)
+            await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
 
 
 def setup(bot):

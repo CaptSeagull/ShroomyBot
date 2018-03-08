@@ -10,8 +10,6 @@ from discord.ext.commands import Bot
 import config
 
 # Initialize our Bot
-import postgres_handler
-
 shroomy = Bot(description="Shroomy Bot " + config.version,
               command_prefix=config.prefix,
               pm_help=False)
@@ -95,15 +93,6 @@ async def __echo_no_cmd(ctx, *args):
     return await shroomy.say(embed=embed)
 
 
-@commands.check(is_owner)
-@shroomy.command()
-async def init_tables():
-    sql = postgres_handler.PostgresHandler()
-    sql.init_tables()
-
-# async def say_hi():
-
-
 def run():
     for extension in config.bot_extensions:
         try:
@@ -112,7 +101,6 @@ def run():
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))
 
-#    shroomy.loop.create_task(say_hi())
     shroomy.run(config.app_id)
 
 
