@@ -128,7 +128,8 @@ class fun:
         message = ctx.message
         question_dict = otherapi.get_trivia_question()
         if not question_dict.get('error', ""):
-            difficulty = "Difficulty: {0}".format(question_dict['difficulty'])
+            difficulty_name = question_dict['difficulty']
+            difficulty = "Difficulty: {0}".format(difficulty_name)
             question = question_dict['question']
             choices = '\n\t'.join(
                 ("({0}) {1}".format(number, choice)
@@ -161,9 +162,9 @@ class fun:
                     pass
 
             if answer_num and answer_num == correct_num:
-                if difficulty == "medium":
+                if difficulty_name == "medium":
                     coin_amount = 2
-                elif difficulty == "hard":
+                elif difficulty_name == "hard":
                     coin_amount = 3
                 else:
                     coin_amount = 1
