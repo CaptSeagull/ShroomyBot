@@ -73,7 +73,7 @@ def get_pokemon_from_api(query=""):
     default_id = 0
     default_name = "MissingNo"
     default_sprite = ""  # To Do?
-    default_types = ["None"]
+    default_types = ["???"]
 
     # Wrapper to return result
     pkmn_wrapper = {
