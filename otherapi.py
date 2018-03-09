@@ -1,17 +1,29 @@
 # System imports
 import urllib
+from html import unescape
 
 # 3rd Party Imports
 import requests
 
 # Personal Library
-import commons
+from commons import get_random_int, get_suffled_list
+from postgres_handler import PokemonSearch
 
 
-def get_pokemon(query=""):
+def get_pokemon(query: str):
     # Retrieve requested pokemon info from json file. If none exists, retrieve from get_pokemon_from_api(...)
-    query = str(query).lower()
+    number = None
+    name = None
+    if query is not None:
+        if query.isdigit():
+            number = query
+        else:
+            name = str(query).lower()
 
+    url = 'http://pokeapi.co/api'
+
+    """
+    Commenting this out since using database instead of local file
     # Retrieve relative path to the json file
     rel_path = "pkmn/"
     filename = "pkmn_names.json"
@@ -29,6 +41,21 @@ def get_pokemon(query=""):
         # Otherwise, try to save the file if there was no error
         if not pkmn_result['error'] and has_file is True:
             commons.update_file_to_json_contents(pkmn_result, query, filepath)
+    return pkmn_result
+    """
+
+    # Check database if pokemon was queried before. No need to call API if so.
+    pkmn = PokemonSearch()
+    pkmn_result = pkmn.get_pkmn(name, number)
+    if pkmn_result:
+        pkmn_result['source'] = url
+        return pkmn_result
+    else:
+        # Use API to retrieve pokemon
+        pkmn_result = get_pokemon_from_api(str(query).lower())
+        # Save the result to database if there was no error
+        if not pkmn_result['error']:
+            pkmn.save_pkmn_data(pkmn_result)
     return pkmn_result
 
 
@@ -266,8 +293,43 @@ def get_dictionary(word: str="", app_id: str="", app_key: str=""):
                                        in senses_list
                                        if senses_item.get('definitions'))
     else:
-        dict_wrapper['error'] = "Couldn't find my dictionary :sob: Error Code: " + str(r.status_code)
+        dict_wrapper['error'] = "Couldn't find the word in my dictionary :sob: Error Code: " + str(r.status_code)
     return dict_wrapper
 
 
+def get_trivia_question(difficulty: str= None, question_type: str= None, category: int= 31):
+    url = 'https://opentdb.com/api.php'
+    source = 'https://opentdb.com/'
 
+    dict_wrapper = {}
+
+    params = dict(amount=1, category=category)
+    if difficulty:
+        params['difficulty'] = difficulty
+    if question_type:
+        params['type'] = question_type
+
+    r = requests.get(url, params=params, timeout=30)
+    if r.status_code == 200:
+        result = r.json()
+        results = result.get('results', [{}])
+        result_dict = results[0]
+
+        # Retrieve required data
+        dict_wrapper['type'] = result_dict.get('type')
+        dict_wrapper['difficulty'] = result_dict.get('difficulty')
+        dict_wrapper['question'] = unescape(result_dict.get('question'))
+
+        # Randomly insert the correct answer with the wrong answers
+        right_choice = unescape(result_dict.get('correct_answer', "???"))
+        wrong_choices = get_suffled_list([unescape(choice) for choice in result_dict.get('incorrect_answers', [])])
+        correct_index = get_random_int(len(wrong_choices) - 1) if wrong_choices else 0
+        wrong_choices.insert(correct_index, right_choice)
+
+        dict_wrapper['correct'] = correct_index + 1  # since choices start at (1)
+        dict_wrapper['correct_answer'] = right_choice
+        dict_wrapper['choices'] = wrong_choices
+        dict_wrapper['source'] = source
+    else:
+        dict_wrapper['error'] = "Couldn't find a question online whoops Error Code: " + str(r.status_code)
+    return dict_wrapper

@@ -8,6 +8,7 @@ from discord.ext import commands
 import config
 import commons
 import discord_commons
+import otherapi
 from postgres_handler import KyonCoin
 
 
@@ -120,6 +121,59 @@ class fun:
         Careful, you are timed!
         """
         await self.ask_math(ctx.message)
+
+    @ask.command(pass_context=True)
+    async def trivia(self, ctx):
+        """Ask you for a random trivia question."""
+        message = ctx.message
+        question_dict = otherapi.get_trivia_question()
+        if not question_dict.get('error', ""):
+            difficulty = "Difficulty: {0}".format(question_dict['difficulty'])
+            question = question_dict['question']
+            choices = '\n\t'.join(
+                ("({0}) {1}".format(number, choice)
+                 for number, choice
+                 in enumerate(question_dict['choices'], 1)))
+            time = 30.0
+            footer = ":: Answer by entering the number. You have {0} seconds. ::".format(time)
+
+            message_block = "I have a question for you: ```{0}\n\n{1}\n\t{2}\n\n{3}```".format(
+                difficulty, question, choices, footer)
+            await self.bot.say(message_block)
+            try:
+                reply_message = await self.bot.wait_for_message(
+                    author=message.author,
+                    channel=message.channel,
+                    timeout=20.0)
+            except asyncio.TimeoutError:
+                reply_message = None
+                pass
+            if reply_message is None:
+                return await self.bot.say(
+                    "Oh, sorry, you took too long. Try again")
+
+            correct_num = question_dict['correct']
+            answer_num = None
+            if reply_message.content:
+                try:
+                    answer_num = int(reply_message.content.split(' ')[0])
+                except ValueError:
+                    pass
+
+            if answer_num and answer_num == correct_num:
+                if difficulty == "medium":
+                    coin_amount = 2
+                elif difficulty == "hard":
+                    coin_amount = 3
+                else:
+                    coin_amount = 1
+                await self.bot.say("That's correct!")
+                kyoncoin = KyonCoin()
+                coins = kyoncoin.update_coins(message.server.id, message.author.id, coin_amount)
+                await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
+            else:
+                return await self.bot.say("Sorry but the corrrect answer is: {0}".format(
+                    question_dict['correct_answer']))
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):

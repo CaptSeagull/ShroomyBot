@@ -1,5 +1,3 @@
-import asyncio
-
 # imports needed to run discord
 import discord
 from discord.ext import commands

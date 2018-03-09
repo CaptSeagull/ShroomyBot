@@ -1,4 +1,4 @@
-from random import randint
+from random import randint, shuffle
 from decimal import Decimal
 import os
 import json
@@ -14,6 +14,11 @@ def get_random_int(size: int):
 
 def get_random_item(items):
     return items[get_random_int(len(items) - 1)] if items else items
+
+
+def get_suffled_list(items):
+    shuffle(items[:])
+    return items
 
 
 def get_random_math_question():
@@ -34,7 +39,7 @@ def get_random_math_question():
     elif action == "*":
         answer = f_num * l_num
     elif action == "/":
-        answer = round( Decimal(f_num/l_num) , 2)
+        answer = round(Decimal(f_num/l_num), 2)
         expression += " and round it to the nearest hundredths"
     return expression, answer
 
