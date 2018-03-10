@@ -24,33 +24,39 @@ class KyonCoin(PostgresHandler):
     def get_coins(self, server_id, user_id):
         """Retrieves coin amount for a given user in a given server."""
         coins = 0
-        conn = self.connect()
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(self.select_coins_query, (server_id, user_id))
-                result_one = curs.fetchone()
-                conn.rollback()  # Rollback so table won't be stuck on idle
-                if result_one:
-                    coins = result_one[0]
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    curs.execute(self.select_coins_query, (server_id, user_id))
+                    result_one = curs.fetchone()
+                    conn.rollback()  # Rollback so table won't be stuck on idle
+                    if result_one:
+                        coins = result_one[0]
 
-        conn.close()
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))
         return coins
 
     def update_coins(self, server_id, user_id, amount):
         """Adds the coin amount (if exists) on the database for a given user in a given server."""
-        conn = self.connect()
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(self.select_coins_query, (server_id, user_id))
-                result_one = curs.fetchone()
-                if result_one:
-                    amount += result_one[0]
-                    curs.execute(self.update_coins_query, (amount, server_id, user_id))
-                else:
-                    curs.execute(self.insert_coins_query, (server_id, user_id, amount))
-                conn.commit()
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    curs.execute(self.select_coins_query, (server_id, user_id))
+                    result_one = curs.fetchone()
+                    if result_one:
+                        amount += result_one[0]
+                        curs.execute(self.update_coins_query, (amount, server_id, user_id))
+                    else:
+                        curs.execute(self.insert_coins_query, (server_id, user_id, amount))
+                    conn.commit()
 
-        conn.close()
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))
         return amount
 
 
@@ -71,38 +77,104 @@ class PokemonSearch(PostgresHandler):
 
     def get_pkmn(self, name: str, pokedex: int):
         """Retrieves a pokemon entry on the databse if exists"""
-        conn = self.connect()
         pkmn_dict = None
-        with conn:
-            with conn.cursor() as curs:
-                curs.execute(self.select_pkmn_query, (name, pokedex))
-                result_one = curs.fetchone()
-                if result_one:
-                    pkmn_types = [result_one[2], result_one[3]]
-                    pkmn_dict = {'pkmn_id': result_one[0],
-                                 'pkmn_name': result_one[1],
-                                 'pkmn_sprite': result_one[4],
-                                 'pkmn_types': [types for types in pkmn_types if types is not None]
-                                 }
-        conn.rollback()
-        conn.close()
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    curs.execute(self.select_pkmn_query, (name, pokedex))
+                    result_one = curs.fetchone()
+                    if result_one:
+                        pkmn_types = [result_one[2], result_one[3]]
+                        pkmn_dict = {'pkmn_id': result_one[0],
+                                     'pkmn_name': result_one[1],
+                                     'pkmn_sprite': result_one[4],
+                                     'pkmn_types': [types for types in pkmn_types if types is not None]
+                                     }
+            conn.rollback()
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))
         return pkmn_dict
 
     def save_pkmn_data(self, pkmn_data: dict):
         """Saves pkmn data to database."""
-        conn = self.connect()
-        with conn:
-            with conn.cursor() as curs:
-                pkmn_type_one = pkmn_data['pkmn_types'][0] if pkmn_data['pkmn_types'] else "???"
-                pkmn_type_two = pkmn_data['pkmn_types'][1] if len(pkmn_data['pkmn_types']) > 1 else None
-                curs.execute(self.select_types_query)
-                pkmn_types = {types[1]: types[0] for types in curs.fetchall()}
-                conn.rollback()
-                curs.execute(self.insert_pkmn_query,
-                             (pkmn_data['pkmn_id'],
-                              pkmn_data['pkmn_name'],
-                              pkmn_types[pkmn_type_one],
-                              pkmn_types[pkmn_type_two] if pkmn_type_two is not None else None,
-                              pkmn_data['pkmn_sprite']))
-                conn.commit()
-        conn.close()
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    pkmn_type_one = pkmn_data['pkmn_types'][0] if pkmn_data['pkmn_types'] else "???"
+                    pkmn_type_two = pkmn_data['pkmn_types'][1] if len(pkmn_data['pkmn_types']) > 1 else None
+                    curs.execute(self.select_types_query)
+                    pkmn_types = {types[1]: types[0] for types in curs.fetchall()}
+                    conn.rollback()
+                    curs.execute(self.insert_pkmn_query,
+                                 (pkmn_data['pkmn_id'],
+                                  pkmn_data['pkmn_name'],
+                                  pkmn_types[pkmn_type_one],
+                                  pkmn_types[pkmn_type_two] if pkmn_type_two is not None else None,
+                                  pkmn_data['pkmn_sprite']))
+                    conn.commit()
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))
+
+
+class Token(PostgresHandler):
+    def __init__(self):
+        PostgresHandler.__init__(self)
+        self.select_token_query = "select token_id, created_date, active from api_token where api_name = %s"
+        self.insert_token_query = "insert into api_token (token_id, api_name) values (%s, %s)"
+        self.update_token_query = ("update api_token set token_id = %s, "
+                                   + "created_date = now(), "
+                                   + "active = \'true\' "
+                                   + "where api_name = %s")
+        self.update_token_inactive_query = "update api_token set active = \'false\' where api_name = %s"
+
+    def get_token(self, name: str):
+        """Retrieves any token value of the api on the database (if any)."""
+        result_token, result_date = None, None
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    curs.execute(self.select_token_query, (name,))
+                    result_query = curs.fetchone()
+                    conn.rollback()
+                    if result_query and result_query[2]:
+                        result_token, result_date = result_query[0], result_query[1]
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))
+        return result_token, result_date
+
+    def update_token(self, name: str, token_id: str):
+        """Updates the token value of the api on the database. Creates an entry if not exist yet."""
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    curs.execute(self.select_token_query, (name,))
+                    result_query = curs.fetchone()
+                    conn.rollback()
+                    if result_query:
+                        curs.execute(self.update_token_query, (token_id, name))
+                    else:
+                        curs.execute(self.insert_token_query, (token_id, name))
+                    conn.commit()
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))
+
+    def inactive_token(self, name: str):
+        """Sets the given api on the database inactive so next time api is called,
+         it will need to generate a new one."""
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    curs.execute(self.update_token_inactive_query, (name,))
+                    conn.commit()
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))

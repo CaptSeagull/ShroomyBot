@@ -1,13 +1,15 @@
 # System imports
 import urllib
 from html import unescape
+from datetime import datetime
 
 # 3rd Party Imports
 import requests
 
 # Personal Library
 from commons import get_random_int, get_suffled_list
-from postgres_handler import PokemonSearch
+from postgres_handler import PokemonSearch, Token
+from config import owner_id
 
 
 def get_pokemon(query: str):
@@ -258,10 +260,7 @@ def get_math_js(expr_list):
 
     expr_json = expr_dict
     print(expr_json)
-    r = requests.post(
-        "{0}/{1}/".format(url, version),
-        json=expr_json,
-        timeout=30)
+    r = requests.post("{0}/{1}/".format(url, version), json=expr_json, timeout=30)
     if r.status_code == 200:
         return r.json()
     return r.status_code
@@ -298,27 +297,57 @@ def get_dictionary(word: str="", app_id: str="", app_key: str=""):
 
 
 def get_trivia_question(difficulty: str= None, question_type: str= None, category: int= 31):
-    url = 'https://opentdb.com/api.php'
+    url = 'https://opentdb.com/'
+    command_token = "api_token.php"
+    command_request = "api.php"
     source = 'https://opentdb.com/'
+    api_name = "open_trivia"
 
-    dict_wrapper = {}
+    # First retrieve a token id. If non exists, request one from the site
+    token = Token()
+    token_id, create_date = token.get_token(api_name)  # retrieve token from database
+    request_token = True
+    if token_id:
+        date_lambda = (datetime.now() - create_date)
+        hours = date_lambda.seconds//3600
+        request_token = hours >= 6
 
-    params = dict(amount=1, category=category)
+    # If we require a new token
+    if request_token:
+        params = dict(command='request')
+        r = requests.get(url + command_token, params=params, timeout=30)
+        if r.status_code == 200:
+            result = r.json()
+            token_id = result.get('token', None)
+
+        if token_id is None:
+            return dict(error="Something bad happened in the backend. Please try again later.")
+        else:
+            token.update_token(api_name, token_id)  # update new token on the database
+
+    # Actual query for the trivia
+    params = dict(amount=1, category=category, token=token_id)
     if difficulty:
         params['difficulty'] = difficulty
     if question_type:
         params['type'] = question_type
 
-    r = requests.get(url, params=params, timeout=30)
+    r = requests.get(url + command_request, params=params, timeout=30)
     if r.status_code == 200:
         result = r.json()
+
+        response_code = result.get('response_code', 1)
+
+        if response_code == 1:
+            return dict(error="Couldn't find a question online whoops Error Code: " + str(response_code))
+        elif response_code == 3:
+            return dict(error="I shouldn't reach here. Call my dad pls. Error Code: " + str(response_code))
+        elif response_code == 4:
+            token.inactive_token(api_name)  # Set token to inactive
+            return dict(error="Looks like you've answered all the questions friend. Questions will now repeat.")
+
         results = result.get('results', [{}])
         result_dict = results[0]
-
-        # Retrieve required data
-        dict_wrapper['type'] = result_dict.get('type')
-        dict_wrapper['difficulty'] = result_dict.get('difficulty')
-        dict_wrapper['question'] = unescape(result_dict.get('question'))
 
         # Randomly insert the correct answer with the wrong answers
         right_choice = unescape(result_dict.get('correct_answer', "???"))
@@ -326,10 +355,14 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
         correct_index = get_random_int(len(wrong_choices) - 1) if wrong_choices else 0
         wrong_choices.insert(correct_index, right_choice)
 
-        dict_wrapper['correct'] = correct_index + 1  # since choices start at (1)
-        dict_wrapper['correct_answer'] = right_choice
-        dict_wrapper['choices'] = wrong_choices
-        dict_wrapper['source'] = source
+        # Set required data
+        return dict(
+            type=result_dict.get('type'),
+            difficulty=result_dict.get('difficulty', ""),
+            question=unescape(result_dict.get('question')),
+            correct=correct_index + 1,  # since choices start at (1)
+            correct_answer=right_choice,
+            choices=wrong_choices,
+            source=source)
     else:
-        dict_wrapper['error'] = "Couldn't find a question online whoops Error Code: " + str(r.status_code)
-    return dict_wrapper
+        return dict(error="Couldn't find a question online whoops Error Code: " + str(r.status_code))

@@ -28,7 +28,7 @@ def get_random_math_question():
     l_num = get_random_int(100)
 
     if l_num == 0:
-        l_num = 1 # prevent black hole
+        l_num = 1  # prevent black hole
 
     action = get_random_item(operations)
     expression = "{0}{1}{2}".format(str(f_num), str(action), str(l_num))

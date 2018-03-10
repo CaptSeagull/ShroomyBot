@@ -8,7 +8,7 @@ from discord.ext import commands
 import config
 import commons
 import discord_commons
-import otherapi
+from otherapi import get_trivia_question
 from postgres_handler import KyonCoin
 
 
@@ -20,6 +20,18 @@ class fun:
         if message.content.startswith(self.bot.user.mention):
             if "ask me" in message.content:
                 return await self.ask_math(message)
+
+    async def on_command_error(self, error, ctx):
+        channel = ctx.message.channel
+        if isinstance(error, commands.CommandOnCooldown):
+            command = ctx.invoked_subcommand
+            return await self.bot.send_message(
+                channel, ("Whoa there, {0}, you've been using {1} too fast. "
+                          + "Try again after a bit.").format(
+                    ctx.message.author.mention, command
+                ))
+        else:
+            print(str(error))
 
     # [mood] command. Generates random mood whenever it is called.
     @commands.command()
@@ -110,11 +122,13 @@ class fun:
                                        action_dict[ctx.invoked_with]))
 
     @commands.group(pass_context=True)
+    @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def ask(self, ctx):
         if ctx.invoked_subcommand is None:
-            return await self.ask_math(ctx.message)
+            return await self.bot.say("What kind of question do you want to be asked? Try the help for options.")
 
     @ask.command(pass_context=True)
+    @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def me(self, ctx):
         """Asks you a math question.
 
@@ -123,13 +137,14 @@ class fun:
         await self.ask_math(ctx.message)
 
     @ask.command(pass_context=True)
+    @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def trivia(self, ctx):
         """Ask you for a random trivia question."""
         message = ctx.message
-        question_dict = otherapi.get_trivia_question()
+        question_dict = get_trivia_question()
         if not question_dict.get('error', ""):
             difficulty_name = question_dict['difficulty']
-            difficulty = "Difficulty: {0}".format(difficulty_name)
+            difficulty = "Difficulty: {0}".format(difficulty_name.title())
             question = question_dict['question']
             choices = '\n\t'.join(
                 ("({0}) {1}".format(number, choice)
@@ -175,6 +190,8 @@ class fun:
             else:
                 return await self.bot.say("Sorry but the corrrect answer is: {0}".format(
                     question_dict['correct_answer']))
+        else:
+            return await self.bot.say(question_dict['error'])
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):
