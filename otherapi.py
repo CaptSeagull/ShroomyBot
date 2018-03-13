@@ -4,6 +4,8 @@ from html import unescape
 from datetime import datetime
 
 # 3rd Party Imports
+from json import JSONDecodeError
+
 import requests
 
 # Personal Library
@@ -140,14 +142,18 @@ def get_random_quote():
                       params=params,
                       timeout=30)
     if r.status_code == 200:
-        result = r.json()
-        result_dict = {
-            'quote': result.get('quoteText', ""),
-            'author': result.get('quoteAuthor', ""),
-            'source': result.get('quoteLink', site_url),
-            'error': ""
-            }
-        return result_dict
+        try:
+            result = r.json()
+            result_dict = {
+                'quote': result.get('quoteText', ""),
+                'author': result.get('quoteAuthor', ""),
+                'source': result.get('quoteLink', site_url),
+                'error': ""
+                }
+            return result_dict
+        except JSONDecodeError as jsonex:
+            print(r.text)
+            return dict(error="Site gave me an error again. Error: " + str(jsonex))
     return dict(error="No quote found.")
 
 

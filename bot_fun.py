@@ -17,8 +17,8 @@ class fun:
     def __init__(self, bot):
         self.bot = bot
 
-    async def on_ready(self):
-        self.bot.loop.create_task(self.status_task())
+    #  async def on_ready(self):
+    #    self.bot.loop.create_task(self.status_task())
 
     async def on_message(self, message):
         if message.content.startswith(self.bot.user.mention):
