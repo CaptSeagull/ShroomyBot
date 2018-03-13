@@ -1,5 +1,6 @@
 # System imports
 import platform
+from random import random
 
 # imports needed to run discord
 import discord
@@ -37,9 +38,19 @@ def is_owner(ctx):
 
 @shroomy.event
 async def on_message(message):
-    # Only listen to messages from other people
-    if message.author == shroomy.user:
+    # Only listen to messages from other people and none bots
+    if message.author == shroomy.user or message.author.bot:
         return
+
+    # Do not echo if a mention in beginning or prefix
+    if random() < 0.10 and not (message.content.startswith(shroomy.user.mention)
+                                or message.content.startswith(config.prefix)):
+        bot_message = "{0}!! Hehe".format(message.content.capitalize())
+        embed = discord.Embed(color=0x2b9b29)
+        embed.add_field(name=":smile:", value=bot_message, inline=False)
+        embed.set_image(url=("https://cdn.discordapp.com/"
+                             "emojis/401429201976295424.png"))
+        await shroomy.send_message(message.channel, embed=embed)
 
     return await shroomy.process_commands(message)
 
