@@ -44,7 +44,7 @@ class fun:
                 ctx = await self.bot.send_message(channel, "New mood")
                 await asyncio.sleep(2.0)
                 await self.get_mood(ctx)
-            await asyncio.sleep(60.0)
+            await asyncio.sleep(360.0)
 
     # [mood] command. Generates random mood whenever it is called.
     @commands.command(pass_context=True)
@@ -71,7 +71,7 @@ class fun:
         new_msg = await self.bot.send_message(message.channel, "I'm feeling... " + emoji_string)
         await asyncio.sleep(1)
         await self.bot.edit_message(new_msg, new_content=(
-                new_msg.content + "\n...for now anyways. Ask me again later."))
+                new_msg.content + "\n\t...for now anyways."))
 
     # [choose] command.
     @commands.command()
