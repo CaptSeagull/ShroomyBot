@@ -1,4 +1,5 @@
 import asyncio
+from random import random
 
 import discord
 from decimal import Decimal, InvalidOperation
@@ -15,6 +16,9 @@ from postgres_handler import KyonCoin
 class fun:
     def __init__(self, bot):
         self.bot = bot
+
+    async def on_ready(self):
+        self.bot.loop.create_task(self.status_task())
 
     async def on_message(self, message):
         if message.content.startswith(self.bot.user.mention):
@@ -33,10 +37,22 @@ class fun:
         else:
             print(str(error))
 
+    async def status_task(self):
+        channel = self.bot.get_channel(config.channel_spam_id)
+        while self.bot.is_logged_in:
+            if random() < 0.25 and channel is not None:
+                ctx = await self.bot.send_message(channel, "New mood")
+                await asyncio.sleep(2.0)
+                await self.get_mood(ctx)
+            await asyncio.sleep(60.0)
+
     # [mood] command. Generates random mood whenever it is called.
-    @commands.command()
-    async def mood(self):
+    @commands.command(pass_context=True)
+    async def mood(self, ctx):
         """Generate text with a custom emoji from server"""
+        await self.get_mood(ctx.message)
+
+    async def get_mood(self, message):
         # Retrieve a random item from custom emojis from the server
         # Make sure the emojis are unrestricted otherwise they will be ignored
         custom_emojis = [emoji for emoji in self.bot.get_all_emojis() if not emoji.roles]
@@ -52,9 +68,10 @@ class fun:
             commons.get_random_item(custom_emojis))
 
         # Display on Discord
-        await self.bot.say("Hai, my current mood is... " + emoji_string)
+        new_msg = await self.bot.send_message(message.channel, "I'm feeling... " + emoji_string)
         await asyncio.sleep(1)
-        await self.bot.say("...for now anyways. Ask me again later.")
+        await self.bot.edit_message(new_msg, new_content=(
+                new_msg.content + "\n...for now anyways. Ask me again later."))
 
     # [choose] command.
     @commands.command()
