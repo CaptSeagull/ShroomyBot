@@ -43,7 +43,7 @@ async def on_message(message):
         return
 
     # Do not echo if a mention in beginning or prefix
-    if random() < 0.08 and not (message.content.startswith(shroomy.user.mention)
+    if random() < 0.01 and not (message.content.startswith(shroomy.user.mention)
                                 or message.content.startswith(config.prefix)):
         bot_message = "{0}!!".format(message.content.capitalize())
         embed = discord.Embed(color=0x2b9b29)
