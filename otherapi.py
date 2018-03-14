@@ -375,7 +375,7 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
         return dict(error="Couldn't find a question online whoops Error Code: " + str(r.status_code))
 
 
-def get_thinking_image_url():
+def get_thinking_image_url(subreddit: str='Thinking'):
     # Retrieve a token from reddit for OAuth2
     request_token, request_token_type = get_reddit_token()
     if not request_token:
@@ -383,7 +383,7 @@ def get_thinking_image_url():
         return dict(error=":thinking:")
 
     # Get actual query if done
-    url = "https://oauth.reddit.com/r/Thinking/top/.json"
+    url = "https://oauth.reddit.com/r/{0}/top/.json".format(subreddit)
     params = dict(sort="top", t="week", limit="30")
     headers = {'Authorization': "{0} {1}".format(request_token_type, request_token),
                'User-Agent': config.reddit_user_agent}
@@ -392,10 +392,16 @@ def get_thinking_image_url():
     if r.status_code == 200:
         result = r.json()
         result_data = result.get('data', {})
-        image_url_list = [data.get('data', {}).get('thumbnail')
-                          for data in result_data.get('children', [])
-                          if data.get('data', {}).get('thumbnail')]
-
+        image_url_list = []
+        for children in result_data.get('children', []):
+            data = children.get('data')
+            if (not data
+                    or not data.get('post_hint') == "image"
+                    or data.get('locked', "true") == "true"):
+                continue
+            thumbnail = data.get('thumbnail')
+            image = data.get('url')
+            image_url_list.append(image if image else thumbnail)
         return dict(img_list=image_url_list)
     print("Error while requesting reddit data " + str(r.status_code))
     return dict(error=":thinking:")

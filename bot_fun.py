@@ -210,17 +210,30 @@ class fun:
         else:
             return await self.bot.say(question_dict['error'])
 
-    @commands.command()
-    @commands.cooldown(rate=30, per=60, type=commands.BucketType.server)
-    async def thinking(self):
-        img_dict = get_thinking_image_url()
+    @commands.command(pass_context=True)
+    async def thinking(self, ctx):
+        """Returns a random thinking image from reddit."""
+        return await self.random_reddit_image(ctx.message, 'Thinking')
+
+    @commands.command(pass_context=True)
+    async def smug(self, ctx):
+        """Returns a random smug gril image from reddit."""
+        return await self.random_reddit_image(ctx.message, 'Smugs')
+
+    @commands.command(pass_context=True)
+    async def woof(self, ctx):
+        """Returns a random shiba image from reddit."""
+        return await self.random_reddit_image(ctx.message, 'shiba')
+
+    async def random_reddit_image(self, message, subreddit: str='Thinking'):
+        img_dict = get_thinking_image_url(subreddit)
         if not img_dict.get('error'):
             img_item = commons.get_random_item(img_dict.get('img_list', []))
             if img_item:
                 embed = discord.Embed(color=0x2b9b29)
                 embed.set_image(url=img_item)
-                return await self.bot.say(embed=embed)
-        return await self.bot.say(":thinking:")
+                return await self.bot.send_message(message.channel, embed=embed)
+        return await self.bot.send_message(message.channel, ":thinking:")
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):
