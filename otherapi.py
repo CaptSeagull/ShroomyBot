@@ -7,11 +7,12 @@ from datetime import datetime
 from json import JSONDecodeError
 
 import requests
+import requests.auth
 
 # Personal Library
+import config
 from commons import get_random_int, get_suffled_list
 from postgres_handler import PokemonSearch, Token
-from config import owner_id
 
 
 def get_pokemon(query: str):
@@ -372,3 +373,41 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
             source=source)
     else:
         return dict(error="Couldn't find a question online whoops Error Code: " + str(r.status_code))
+
+
+def get_thinking_image_url():
+    # Retrieve a token from reddit for OAuth2
+    request_token, request_token_type = get_reddit_token()
+    if not request_token:
+        print("Error on Retrieving Reddit Token")
+        return dict(error=":thinking:")
+
+    # Get actual query if done
+    url = "https://oauth.reddit.com/r/Thinking/top/.json"
+    params = dict(sort="top", t="week", limit="30")
+    headers = {'Authorization': "{0} {1}".format(request_token_type, request_token),
+               'User-Agent': config.reddit_user_agent}
+
+    r = requests.get(url, params=params, headers=headers)
+    if r.status_code == 200:
+        result = r.json()
+        result_data = result.get('data', {})
+        image_url_list = [data.get('data', {}).get('thumbnail')
+                          for data in result_data.get('children', [])
+                          if data.get('data', {}).get('thumbnail')]
+
+        return dict(img_list=image_url_list)
+    print("Error while requesting reddit data " + str(r.status_code))
+    return dict(error=":thinking:")
+
+
+def get_reddit_token():
+    url = "https://www.reddit.com/api/"
+    version = "v1"
+    command = "/access_token"
+    client_auth = requests.auth.HTTPBasicAuth(config.reddit_client_id, config.reddit_secret_id)
+    post_data = dict(grant_type="client_credentials")
+    headers = {'User-Agent': config.reddit_user_agent}
+    r = requests.post(url + version + command, auth=client_auth, data=post_data, headers=headers)
+    result = r.json()
+    return result.get('access_token'), result.get('token_type')

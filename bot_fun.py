@@ -9,7 +9,7 @@ from discord.ext import commands
 import config
 import commons
 import discord_commons
-from otherapi import get_trivia_question
+from otherapi import get_trivia_question, get_thinking_image_url
 from postgres_handler import KyonCoin
 
 
@@ -209,6 +209,18 @@ class fun:
                     question_dict['correct_answer']))
         else:
             return await self.bot.say(question_dict['error'])
+
+    @commands.command()
+    @commands.cooldown(rate=30, per=60, type=commands.BucketType.server)
+    async def thinking(self):
+        img_dict = get_thinking_image_url()
+        if not img_dict.get('error'):
+            img_item = commons.get_random_item(img_dict.get('img_list', []))
+            if img_item:
+                embed = discord.Embed(color=0x2b9b29)
+                embed.set_image(url=img_item)
+                return await self.bot.say(embed=embed)
+        return await self.bot.say(":thinking:")
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):

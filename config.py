@@ -13,6 +13,8 @@ sql_db = os.getenv('SQL_DB')
 sql_host = os.getenv('SQL_HOST')
 sql_username = os.getenv('SQL_USERNAME')
 sql_password = os.getenv('SQL_PASSWORD')
-
+reddit_client_id = os.getenv('REDDIT_APP')
+reddit_secret_id = os.getenv('REDDIT_SECRET')
+reddit_user_agent = os.getenv('REDDIT_USER_AGENT')
 
 bot_extensions = ["bot_query", "bot_fun"]
