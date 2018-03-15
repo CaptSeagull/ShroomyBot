@@ -9,7 +9,7 @@ from discord.ext import commands
 import config
 import commons
 import discord_commons
-from otherapi import get_trivia_question, get_thinking_image_url
+from otherapi import get_trivia_question, get_subreddit_image_list
 from postgres_handler import KyonCoin
 
 
@@ -24,6 +24,8 @@ class fun:
         if message.content.startswith(self.bot.user.mention):
             if "ask me" in message.content:
                 return await self.ask_math(message)
+        if random() < 0.01 and message.content.startswith("<:hmm"):
+            return await self.random_reddit_image(message, 'Thinking')
 
     async def on_command_error(self, error, ctx):
         channel = ctx.message.channel
@@ -225,15 +227,24 @@ class fun:
         """Returns a random shiba image from reddit."""
         return await self.random_reddit_image(ctx.message, 'shiba')
 
+    @commands.command(pass_context=True)
+    async def cozy(self, ctx):
+        """Returns a random image from /r/CozyPlaces in reddit."""
+        return await self.random_reddit_image(ctx.message, 'CozyPlaces')
+
     async def random_reddit_image(self, message, subreddit: str='Thinking'):
-        img_dict = get_thinking_image_url(subreddit)
+        img_dict = get_subreddit_image_list(subreddit)
         if not img_dict.get('error'):
             img_item = commons.get_random_item(img_dict.get('img_list', []))
             if img_item:
                 embed = discord.Embed(color=0x2b9b29)
                 embed.set_image(url=img_item)
                 return await self.bot.send_message(message.channel, embed=embed)
-        return await self.bot.send_message(message.channel, ":thinking:")
+            else:
+                return await self.bot.send_message(message.channel,
+                                                   ":thinking: | Couldn\'t find an image in this subreddit.")
+        return await self.bot.send_message(message.channel,
+                                           ":thinking: | {0}".format(img_dict.get('error')))
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):

@@ -5,6 +5,7 @@ from datetime import datetime
 
 # 3rd Party Imports
 from json import JSONDecodeError
+import praw
 
 import requests
 import requests.auth
@@ -374,7 +375,7 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
     else:
         return dict(error="Couldn't find a question online whoops Error Code: " + str(r.status_code))
 
-
+'''
 def get_thinking_image_url(subreddit: str='Thinking'):
     # Retrieve a token from reddit for OAuth2
     request_token, request_token_type = get_reddit_token()
@@ -396,7 +397,7 @@ def get_thinking_image_url(subreddit: str='Thinking'):
         for children in result_data.get('children', []):
             data = children.get('data')
             if (not data
-                    or not data.get('post_hint') == "image"
+                    or data.get('post_hint') == "self"
                     or data.get('locked', "true") == "true"):
                 continue
             thumbnail = data.get('thumbnail')
@@ -417,3 +418,24 @@ def get_reddit_token():
     r = requests.post(url + version + command, auth=client_auth, data=post_data, headers=headers)
     result = r.json()
     return result.get('access_token'), result.get('token_type')
+'''
+
+
+def get_subreddit_image_list(subreddit: str='Thinking'):
+    try:
+        return dict(img_list=[submission.url
+                              for submission
+                              in get_praw().subreddit(subreddit).hot(limit=20)
+                              if (hasattr(submission, 'post_hint')
+                                  and submission.post_hint == 'image')])
+    except Exception as e:
+        return dict(error=str(e))
+
+
+def get_praw():
+    return praw.Reddit(client_id=config.reddit_client_id,
+                       client_secret=config.reddit_secret_id,
+                       user_agent=config.reddit_user_agent)
+    #  print(reddit.auth.limits)
+    #  if reddit.auth.limits.get('remaining', 0) < 59:
+    #      raise PRAWException("Reddit called too fast. Try again in a minute.")
