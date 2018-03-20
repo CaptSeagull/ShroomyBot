@@ -1,4 +1,5 @@
 # System imports
+import io
 import platform
 from random import random
 
@@ -8,7 +9,7 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 
 # personal files
-import config
+from tools import otherapi, config
 
 # Initialize our Bot
 shroomy = Bot(description="Shroomy Bot " + config.version,
@@ -45,12 +46,23 @@ async def on_message(message):
     # Do not echo if a mention in beginning or prefix
     if random() < 0.01 and not (message.content.startswith(shroomy.user.mention)
                                 or message.content.startswith(config.prefix)):
-        bot_message = "{0}!!".format(message.content.capitalize())
-        embed = discord.Embed(color=0x2b9b29)
-        embed.add_field(name="Hehe...", value=bot_message, inline=False)
-        embed.set_image(url=("https://cdn.discordapp.com/"
-                             "emojis/401429201976295424.png"))
-        await shroomy.send_message(message.channel, embed=embed)
+        # if message was a png/jpeg, add pickle image to the image and upload
+        image = otherapi.paste_image_from_source(message.content)
+        if image:
+            try:
+                with io.BytesIO(image) as new_image:
+                    await shroomy.send_file(message.channel, fp=new_image, filename="hehe.png")
+            except Exception as e:
+                exc = '{}: {}'.format(type(e).__name__, e)
+                print("NOTE: " + exc)
+                pass
+        else:
+            bot_message = "{0}!!".format(message.content.capitalize())
+            embed = discord.Embed(color=0x2b9b29)
+            embed.add_field(name="Hehe...", value=bot_message, inline=False)
+            embed.set_image(url=("https://cdn.discordapp.com/"
+                                 "emojis/401429201976295424.png"))
+            await shroomy.send_message(message.channel, embed=embed)
 
     return await shroomy.process_commands(message)
 
@@ -88,12 +100,9 @@ async def reload(extension_name: str):
     return await shroomy.whisper("{} reloaded.".format(extension_name))
 
 
-# [__echo_no_cmd] command.
 @commands.check(is_owner)
 @shroomy.command(pass_context=True, name='echo', hidden=True)
 async def __echo_no_cmd(ctx, *args):
-    # if config.dad not in ctx.message.author.name:
-    #    return
     message = ' '.join(args)
     print(ctx.message.author.name + " called echo: " + ctx.message.content)
     await shroomy.delete_message(ctx.message)
@@ -106,8 +115,9 @@ async def __echo_no_cmd(ctx, *args):
 
 def run():
     for extension in config.bot_extensions:
+        cogs_dir = "cogs"
         try:
-            shroomy.load_extension(extension)
+            shroomy.load_extension(cogs_dir + "." + extension)
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
             print('Failed to load extension {}\n{}'.format(extension, exc))

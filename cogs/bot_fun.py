@@ -6,11 +6,9 @@ from decimal import Decimal, InvalidOperation
 from discord.ext import commands
 
 # personal files
-import config
-import commons
-import discord_commons
-from otherapi import get_trivia_question, get_subreddit_image_list
-from postgres_handler import KyonCoin
+from tools import discord_commons, config, commons
+from tools.otherapi import get_trivia_question, get_subreddit_image_list
+from tools.postgres_handler import KyonCoin
 
 
 class fun:

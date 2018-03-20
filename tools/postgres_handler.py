@@ -1,5 +1,5 @@
 import psycopg2
-import config
+from tools import config
 
 
 class PostgresHandler:

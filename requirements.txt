@@ -2,3 +2,4 @@ discord
 requests
 psycopg2-binary
 praw
+pillow

@@ -1,1 +1,1 @@
-worker: python shroomy_bot.py
+worker: python main.py

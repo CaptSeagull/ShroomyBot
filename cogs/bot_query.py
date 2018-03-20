@@ -3,8 +3,7 @@ import discord
 from discord.ext import commands
 
 # personal files
-import config
-import otherapi
+from tools import otherapi, config
 
 
 class query:

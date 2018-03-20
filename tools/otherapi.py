@@ -2,18 +2,21 @@
 import urllib
 from html import unescape
 from datetime import datetime
+from io import BytesIO
 
 # 3rd Party Imports
 from json import JSONDecodeError
 import praw
-
+from PIL import Image
 import requests
 import requests.auth
+from requests.exceptions import MissingSchema
+
 
 # Personal Library
-import config
-from commons import get_random_int, get_suffled_list
-from postgres_handler import PokemonSearch, Token
+from tools import config
+from tools.commons import get_random_int, get_suffled_list
+from tools.postgres_handler import PokemonSearch, Token
 
 
 def get_pokemon(query: str):
@@ -439,3 +442,26 @@ def get_praw():
     #  print(reddit.auth.limits)
     #  if reddit.auth.limits.get('remaining', 0) < 59:
     #      raise PRAWException("Reddit called too fast. Try again in a minute.")
+
+
+def paste_image_from_source(source: str, image: str="https://cdn.discordapp.com/emojis/401429201976295424.png"):
+    try:
+        resp = requests.get(source)
+        if resp.status_code == 200 and resp.headers.get("content-type", "") in ("image/png", "image/jpeg"):
+            with BytesIO(resp.content) as content:
+                background = Image.open(content)
+                resp2 = requests.get(image)
+                if resp2.status_code == 200 and resp2.headers.get("content-type", "") in ("image/png", "image/jpeg"):
+                    with BytesIO(resp2.content) as content2:
+                        foreground = Image.open(content2)
+                        background.paste(foreground, (0, background.height - foreground.height), foreground)
+                        with BytesIO() as result:
+                            background.save(result, format('PNG'))
+                            return result.getvalue()
+    except MissingSchema:
+        return None
+    except Exception as e:
+        exc = '{}: {}'.format(type(e).__name__, e)
+        print("NOTE: " + exc)
+        pass
+    return None
