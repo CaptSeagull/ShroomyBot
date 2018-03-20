@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 
 # personal files
-from tools import otherapi, config
+import tools
 
 
 class query:
@@ -15,7 +15,7 @@ class query:
     async def pkmn(self, *, pokemon="MissingNo"):
         """Looks up pokemon of the given name"""
         msg = await self.bot.say("Ok, let me look it up...")
-        result_dict = otherapi.get_pokemon(pokemon)
+        result_dict = tools.get_pokemon(pokemon)
         types = ", ".join((pkmn_type.title() for pkmn_type in result_dict['pkmn_types']))
         embed = discord.Embed(color=0x2b9b29)
         embed.add_field(name="Pokemon#{0}".format(result_dict['pkmn_id']),
@@ -46,7 +46,7 @@ class query:
                 return await self.bot.say(embed=embed)
 
             # if no phrases passed, return a random quote
-            result_dict = otherapi.get_random_quote()
+            result_dict = tools.get_random_quote()
             if not result_dict.get('error', ""):
                 embed = discord.Embed(title="A quote for you...",
                                       url=result_dict['source'], color=0x2b9b29)
@@ -60,7 +60,7 @@ class query:
     @say.command()
     async def woof(self):
         """Send a woof"""
-        result_dict = otherapi.get_random_uk_doge()
+        result_dict = tools.get_random_uk_doge()
         if not result_dict.get('error', ""):
             embed = discord.Embed(color=0x2b9b29)
             embed.set_image(url=result_dict['doge_url'])
@@ -83,7 +83,7 @@ class query:
             if ctx.subcommand_passed is not None:
                 # retrieve only the first word after the command
                 word = ctx.message.content.split(" ")[1]
-                result_dict = otherapi.get_dictionary(word, config.oxford_app_id, config.oxford_app_key)
+                result_dict = tools.get_dictionary(word, tools.oxford_app_id, tools.oxford_app_key)
                 if not result_dict.get('error', ""):
                     etymologies = '; '.join(result_dict['etymology'])
                     definitions = '\n'.join(("{0}. {1}".format(count, eng_def)
@@ -109,7 +109,7 @@ class query:
     @define.command()
     async def jp(self, *, words=""):
         """Looks up a japanese definition"""
-        result_dict = otherapi.get_jisho_page(words)
+        result_dict = tools.get_jisho_page(words)
         if not result_dict.get('error', ""):
             speech_types = '; '.join(result_dict['speech_type'])
             definitions = '\n'.join(("{0}. {1}".format(count, eng_def)

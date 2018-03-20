@@ -12,11 +12,8 @@ import requests
 import requests.auth
 from requests.exceptions import MissingSchema
 
-
 # Personal Library
-from tools import config
-from tools.commons import get_random_int, get_suffled_list
-from tools.postgres_handler import PokemonSearch, Token
+import tools
 
 
 def get_pokemon(query: str):
@@ -25,7 +22,7 @@ def get_pokemon(query: str):
     name = None
     if query is not None:
         if query.isdigit():
-            number = query
+            number = int(query)
         else:
             name = str(query).lower()
 
@@ -54,7 +51,7 @@ def get_pokemon(query: str):
     """
 
     # Check database if pokemon was queried before. No need to call API if so.
-    pkmn = PokemonSearch()
+    pkmn = tools.PokemonSearch()
     pkmn_result = pkmn.get_pkmn(name, number)
     if pkmn_result:
         pkmn_result['source'] = url
@@ -315,7 +312,7 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
     api_name = "open_trivia"
 
     # First retrieve a token id. If non exists, request one from the site
-    token = Token()
+    token = tools.Token()
     token_id, create_date = token.get_token(api_name)  # retrieve token from database
     request_token = True
     if token_id:
@@ -362,8 +359,10 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
 
         # Randomly insert the correct answer with the wrong answers
         right_choice = unescape(result_dict.get('correct_answer', "???"))
-        wrong_choices = get_suffled_list([unescape(choice) for choice in result_dict.get('incorrect_answers', [])])
-        correct_index = get_random_int(len(wrong_choices) - 1) if wrong_choices else 0
+        wrong_choices = tools.get_suffled_list([unescape(choice)
+                                                for choice
+                                                in result_dict.get('incorrect_answers', [])])
+        correct_index = tools.get_random_int(len(wrong_choices) - 1) if wrong_choices else 0
         wrong_choices.insert(correct_index, right_choice)
 
         # Set required data
@@ -436,9 +435,9 @@ def get_subreddit_image_list(subreddit: str='Thinking'):
 
 
 def get_praw():
-    return praw.Reddit(client_id=config.reddit_client_id,
-                       client_secret=config.reddit_secret_id,
-                       user_agent=config.reddit_user_agent)
+    return praw.Reddit(client_id=tools.reddit_client_id,
+                       client_secret=tools.reddit_secret_id,
+                       user_agent=tools.reddit_user_agent)
     #  print(reddit.auth.limits)
     #  if reddit.auth.limits.get('remaining', 0) < 59:
     #      raise PRAWException("Reddit called too fast. Try again in a minute.")
@@ -454,7 +453,12 @@ def paste_image_from_source(source: str, image: str="https://cdn.discordapp.com/
                 if resp2.status_code == 200 and resp2.headers.get("content-type", "") in ("image/png", "image/jpeg"):
                     with BytesIO(resp2.content) as content2:
                         foreground = Image.open(content2)
-                        background.paste(foreground, (0, background.height - foreground.height), foreground)
+                        desired_size = background.width // 3, background.height // 3
+                        old_size = foreground.size
+                        ratio = float(min(desired_size))/max(old_size)
+                        new_size = tuple([int(x*ratio) for x in old_size])
+                        new_foreground = foreground.resize(new_size, Image.ANTIALIAS)
+                        background.paste(new_foreground, (0, background.height - new_foreground.height), new_foreground)
                         with BytesIO() as result:
                             background.save(result, format('PNG'))
                             return result.getvalue()

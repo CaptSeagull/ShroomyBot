@@ -1,14 +1,15 @@
+# System import
 import asyncio
+import io
 from random import random
 
+# Third party import
 import discord
 from decimal import Decimal, InvalidOperation
 from discord.ext import commands
 
 # personal files
-from tools import discord_commons, config, commons
-from tools.otherapi import get_trivia_question, get_subreddit_image_list
-from tools.postgres_handler import KyonCoin
+import tools
 
 
 class fun:
@@ -19,11 +20,36 @@ class fun:
     #    self.bot.loop.create_task(self.status_task())
 
     async def on_message(self, message):
+        # Only listen to messages from other people and none bots
+        if message.author == self.bot.user or message.author.bot:
+            return
+
         if message.content.startswith(self.bot.user.mention):
             if "ask me" in message.content:
                 return await self.ask_math(message)
         if random() < 0.01 and message.content.startswith("<:hmm"):
             return await self.random_reddit_image(message, 'Thinking')
+
+        # Do not echo if a mention in beginning or prefix
+        if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
+                                    or message.content.startswith(tools.prefix)):
+            # if message was a png/jpeg, add pickle image to the image and upload
+            image = tools.paste_image_from_source(message.content)
+            if image:
+                try:
+                    with io.BytesIO(image) as new_image:
+                        return await self.bot.send_file(message.channel, fp=new_image, filename="hehe.png")
+                except Exception as e:
+                    exc = '{}: {}'.format(type(e).__name__, e)
+                    print("NOTE: " + exc)
+                    pass
+            else:
+                bot_message = "{0}!!".format(message.content.capitalize())
+                embed = discord.Embed(color=0x2b9b29)
+                embed.add_field(name="Hehe...", value=bot_message, inline=False)
+                embed.set_image(url=("https://cdn.discordapp.com/"
+                                     "emojis/401429201976295424.png"))
+                return await self.bot.send_message(message.channel, embed=embed)
 
     async def on_command_error(self, error, ctx):
         channel = ctx.message.channel
@@ -38,7 +64,7 @@ class fun:
             print(str(error))
 
     async def status_task(self):
-        channel = self.bot.get_channel(config.channel_spam_id)
+        channel = self.bot.get_channel(tools.channel_spam_id)
         while self.bot.is_logged_in:
             if random() < 0.25 and channel is not None:
                 ctx = await self.bot.send_message(channel, "New mood")
@@ -64,8 +90,8 @@ class fun:
                 "In that case my mood is :poop:"))
 
         # Retrieve random emoji retrieved from server and format it to be shown on chat.
-        emoji_string = discord_commons.format_emoji(
-            commons.get_random_item(custom_emojis))
+        emoji_string = tools.format_emoji(
+            tools.get_random_item(custom_emojis))
 
         # Display on Discord
         new_msg = await self.bot.send_message(message.channel, "I'm feeling... " + emoji_string)
@@ -86,7 +112,7 @@ class fun:
                 "Well... I guess {0} since that's the only option!".format(
                     str(items[0])))
         else:
-            item_chosen = commons.get_random_item(items)
+            item_chosen = tools.get_random_item(items)
             if item_chosen == "me":
                 item_chosen = "you"
             return await self.bot.say("I choose... {0}!".format(
@@ -98,7 +124,7 @@ class fun:
     @commands.command(pass_context=True)
     async def goodbye(self, ctx):
         """Sends a goodbye text; stops if host"""
-        if ctx.message.author.id != config.owner_id:
+        if ctx.message.author.id != tools.owner_id:
             return await self.bot.say("Oh! Goodbye, "
                                       + ctx.message.author.mention
                                       + "! See you again soon.")
@@ -158,7 +184,7 @@ class fun:
     async def trivia(self, ctx):
         """Ask you for a random trivia question."""
         message = ctx.message
-        question_dict = get_trivia_question()
+        question_dict = tools.get_trivia_question()
         if not question_dict.get('error', ""):
             difficulty_name = question_dict['difficulty']
             difficulty = "Difficulty: {0}".format(difficulty_name.title())
@@ -201,7 +227,7 @@ class fun:
                 else:
                     coin_amount = 1
                 await self.bot.say("That's correct!")
-                kyoncoin = KyonCoin()
+                kyoncoin = tools.KyonCoin()
                 coins = kyoncoin.update_coins(message.server.id, message.author.id, coin_amount)
                 await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
             else:
@@ -231,9 +257,9 @@ class fun:
         return await self.random_reddit_image(ctx.message, 'CozyPlaces')
 
     async def random_reddit_image(self, message, subreddit: str='Thinking'):
-        img_dict = get_subreddit_image_list(subreddit)
+        img_dict = tools.get_subreddit_image_list(subreddit)
         if not img_dict.get('error'):
-            img_item = commons.get_random_item(img_dict.get('img_list', []))
+            img_item = tools.get_random_item(img_dict.get('img_list', []))
             if img_item:
                 embed = discord.Embed(color=0x2b9b29)
                 embed.set_image(url=img_item)
@@ -248,12 +274,12 @@ class fun:
     async def kyon(self, ctx):
         """Shows how many coins you have."""
         if ctx.invoked_subcommand is None:
-            kyoncoin = KyonCoin()
+            kyoncoin = tools.KyonCoin()
             coins = kyoncoin.get_coins(ctx.message.server.id, ctx.message.author.id)
             return await self.bot.say("{0}, you have {1} KyonCoins".format(ctx.message.author.mention, coins))
 
     async def ask_math(self, message):
-        question, num_answer = commons.get_random_math_question()
+        question, num_answer = tools.get_random_math_question()
         await self.bot.send_message(
             message.channel,
             "Ok, {0}, what is {1}?".format(
@@ -290,7 +316,7 @@ class fun:
         )
         await self.bot.send_message(message.channel, bot_reply)
         if answer_correct:
-            kyoncoin = KyonCoin()
+            kyoncoin = tools.KyonCoin()
             coins = kyoncoin.update_coins(message.server.id, message.author.id, 1)
             await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
 

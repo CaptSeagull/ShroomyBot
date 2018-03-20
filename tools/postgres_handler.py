@@ -1,13 +1,13 @@
 import psycopg2
-from tools import config
+import tools
 
 
 class PostgresHandler:
     def __init__(self):
-        self.dbname = config.sql_db
-        self.username = config.sql_username
-        self.password = config.sql_password
-        self.host = config.sql_host
+        self.dbname = tools.sql_db
+        self.username = tools.sql_username
+        self.password = tools.sql_password
+        self.host = tools.sql_host
 
     def connect(self):
         return psycopg2.connect(dbname=self.dbname, user=self.username, password=self.password, host=self.host)

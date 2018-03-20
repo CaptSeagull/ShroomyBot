@@ -6,10 +6,9 @@ def main():
     parser.add_argument("-t", "--test", help="set for bot to use local variables", action="store_true")
     args = parser.parse_args()
     if args.test:
-        import beta.beta_config as beta
+        import beta
         beta.setup_env()
-        beta.welcome_screen()
-    import shroomy_bot
+    from bot import shroomy_bot
     shroomy_bot.run()
 
 
