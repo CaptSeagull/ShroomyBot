@@ -34,7 +34,7 @@ class fun:
         if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
                                     or message.content.startswith(tools.prefix)):
             # if message was a png/jpeg, add pickle image to the image and upload
-            image = tools.paste_image_from_source(message.content)
+            image = tools.paste_image_from_source(message.content, self.bot.user.avatar_url)
             if image:
                 try:
                     with io.BytesIO(image) as new_image:
@@ -47,8 +47,7 @@ class fun:
                 bot_message = "{0}!!".format(message.content.capitalize())
                 embed = discord.Embed(color=0x2b9b29)
                 embed.add_field(name="Hehe...", value=bot_message, inline=False)
-                embed.set_image(url=("https://cdn.discordapp.com/"
-                                     "emojis/401429201976295424.png"))
+                embed.set_image(url=self.bot.user.avatar_url)
                 return await self.bot.send_message(message.channel, embed=embed)
 
     async def on_command_error(self, error, ctx):

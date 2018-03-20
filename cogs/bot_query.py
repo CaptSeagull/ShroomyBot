@@ -41,8 +41,7 @@ class query:
                 msg = ctx.message.content[len(ctx.prefix + ctx.invoked_with):].strip()
                 embed = discord.Embed(color=0x2b9b29)
                 embed.add_field(name="I say...", value=msg, inline=False)
-                embed.set_image(url=("https://cdn.discordapp.com/"
-                                     "emojis/401429201976295424.png"))
+                embed.set_image(url=self.bot.user.avatar_url)
                 return await self.bot.say(embed=embed)
 
             # if no phrases passed, return a random quote
@@ -97,8 +96,7 @@ class query:
                     if definitions:
                         embed.add_field(name="Definition(s)",
                                         value=definitions, inline=False)
-                    embed.set_image(url=("https://cdn.discordapp.com/"
-                                         "emojis/401429201976295424.png"))
+                    embed.set_image(url=self.bot.user.avatar_url)
                     embed.set_footer(text="Made possible by {0}".format(result_dict['source']))
                     return await self.bot.say(embed=embed)
                 else:

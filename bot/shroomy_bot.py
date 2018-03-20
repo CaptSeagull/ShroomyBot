@@ -85,8 +85,7 @@ async def __echo_no_cmd(ctx, *args):
     await shroomy.delete_message(ctx.message)
     embed = discord.Embed(color=0x2b9b29)
     embed.add_field(name="Hey!", value=message, inline=False)
-    embed.set_image(url=("https://cdn.discordapp.com/"
-                         "emojis/401429201976295424.png"))
+    embed.set_image(url=shroomy.user.avatar_url)
     return await shroomy.say(embed=embed)
 
 

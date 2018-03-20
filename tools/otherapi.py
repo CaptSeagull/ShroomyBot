@@ -444,13 +444,14 @@ def get_praw():
 
 
 def paste_image_from_source(source: str, image: str="https://cdn.discordapp.com/emojis/401429201976295424.png"):
+    img_types = ("image/png", "image/jpeg", "image/webp")
     try:
         resp = requests.get(source)
-        if resp.status_code == 200 and resp.headers.get("content-type", "") in ("image/png", "image/jpeg"):
+        if resp.status_code == 200 and resp.headers.get("content-type", "") in img_types:
             with BytesIO(resp.content) as content:
                 background = Image.open(content)
                 resp2 = requests.get(image)
-                if resp2.status_code == 200 and resp2.headers.get("content-type", "") in ("image/png", "image/jpeg"):
+                if resp2.status_code == 200 and resp2.headers.get("content-type", "") in img_types:
                     with BytesIO(resp2.content) as content2:
                         foreground = Image.open(content2)
                         desired_size = background.width // 3, background.height // 3
