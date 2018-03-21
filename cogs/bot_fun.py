@@ -236,40 +236,6 @@ class fun:
             return await self.bot.say(question_dict['error'])
 
     @commands.command(pass_context=True)
-    async def thinking(self, ctx):
-        """Returns a random thinking image from reddit."""
-        return await self.random_reddit_image(ctx.message, 'Thinking')
-
-    @commands.command(pass_context=True)
-    async def smug(self, ctx):
-        """Returns a random smug gril image from reddit."""
-        return await self.random_reddit_image(ctx.message, 'Smugs')
-
-    @commands.command(pass_context=True)
-    async def woof(self, ctx):
-        """Returns a random shiba image from reddit."""
-        return await self.random_reddit_image(ctx.message, 'shiba')
-
-    @commands.command(pass_context=True)
-    async def cozy(self, ctx):
-        """Returns a random image from /r/CozyPlaces in reddit."""
-        return await self.random_reddit_image(ctx.message, 'CozyPlaces')
-
-    async def random_reddit_image(self, message, subreddit: str='Thinking'):
-        img_dict = tools.get_subreddit_image_list(subreddit)
-        if not img_dict.get('error'):
-            img_item = tools.get_random_item(img_dict.get('img_list', []))
-            if img_item:
-                embed = discord.Embed(color=0x2b9b29)
-                embed.set_image(url=img_item)
-                return await self.bot.send_message(message.channel, embed=embed)
-            else:
-                return await self.bot.send_message(message.channel,
-                                                   ":thinking: | Couldn\'t find an image in this subreddit.")
-        return await self.bot.send_message(message.channel,
-                                           ":thinking: | {0}".format(img_dict.get('error')))
-
-    @commands.command(pass_context=True)
     async def meme(self, ctx, *, args: str=None):
         """Meme Generator. Format is <top>;<bottom>|<img_url>
 

@@ -18,3 +18,19 @@ reddit_secret_id = os.getenv('REDDIT_SECRET')
 reddit_user_agent = os.getenv('REDDIT_USER_AGENT')
 
 bot_extensions = ["bot_query", "bot_fun"]
+subreddits = {
+    'thinking': "Thinking",
+    'smug': "Smugs",
+    'woof': "shiba",
+    'cozy': "CozyPlaces",
+    'yuri': "wholesomeyuri",
+    'wakanda': "wholesomebpt",
+    'slep': "AnimalsBeingSleepy",
+    'kawaii': "awwnime",
+    'aww': "Awww",
+    'futaba': "churchoffutaba",
+    'wafu': "headpats",
+    'kyoko': "ultimatedetective",
+    'uguu': "wholesomeanimemes",
+    'chan': "wholesomegreentext"
+}

@@ -133,6 +133,32 @@ class query:
         else:
             await self.bot.say("Oops! | {0}".format(result_dict['error']))
 
+    @commands.command(pass_context=True, aliases=list(tools.subreddits.keys()))
+    async def reddit(self, ctx):
+        """Gets an image from a subreddit.
+
+        Could also use the following inside the brackets instead to call a
+        specific subreddit
+        """
+        subreddit = tools.subreddits.get(ctx.invoked_with)
+        if not subreddit:
+            subreddit = tools.get_random_item(list(tools.subreddits.values()))
+        return await self.random_reddit_image(ctx.message, subreddit)
+
+    async def random_reddit_image(self, message, subreddit: str = 'Thinking'):
+        img_dict = tools.get_subreddit_image_list(subreddit)
+        if not img_dict.get('error'):
+            img_item = tools.get_random_item(img_dict.get('img_list', []))
+            if img_item:
+                embed = discord.Embed(color=0x2b9b29)
+                embed.set_image(url=img_item)
+                return await self.bot.send_message(message.channel, embed=embed)
+            else:
+                return await self.bot.send_message(message.channel,
+                                                   ":thinking: | Couldn\'t find an image in this subreddit.")
+        return await self.bot.send_message(message.channel,
+                                           ":thinking: | {0}".format(img_dict.get('error')))
+
 
 def setup(bot):
     bot.add_cog(query(bot))
