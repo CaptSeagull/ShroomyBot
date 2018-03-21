@@ -269,6 +269,33 @@ class fun:
         return await self.bot.send_message(message.channel,
                                            ":thinking: | {0}".format(img_dict.get('error')))
 
+    @commands.command(pass_context=True)
+    async def meme(self, ctx, *, args: str=None):
+        """Meme Generator. Format is <top>;<bottom>|<img_url>
+
+        Alternatively, image could be an attachment so format is <top>;<bottom>"""
+
+        message = args
+        img_url = None
+        if args:
+            msg_list = args.split('|', maxsplit=1)
+            message = msg_list[0]
+            if len(msg_list) > 1:
+                img_url = msg_list[1]
+        # Check if an attachment is present. Prioritize that
+        if ctx.message.attachments and ctx.message.attachments[0].get('url'):
+            img_url = ctx.message.attachments[0].get('url')
+        img_result = tools.generate_meme_from_text(message, img_url)
+        if img_result:
+            try:
+                with io.BytesIO(img_result) as new_image:
+                    return await self.bot.send_file(ctx.message.channel, fp=new_image, filename="meme.png")
+            except Exception as e:
+                exc = '{}: {}'.format(type(e).__name__, e)
+                print("NOTE: " + exc)
+                pass
+        return await self.bot.say("wut")
+
     @commands.group(pass_context=True)
     async def kyon(self, ctx):
         """Shows how many coins you have."""
