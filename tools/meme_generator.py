@@ -123,6 +123,10 @@ def draw_text(msg, pos, img, draw):
         draw.text((text_x+thicc, text_y-thicc), lines[i], (0,0,0), font=font)
         draw.text((text_x+thicc, text_y+thicc), lines[i], (0,0,0), font=font)
         draw.text((text_x-thicc, text_y+thicc), lines[i], (0,0,0), font=font)
+        draw.text((text_x - thicc, text_y), lines[i], (0, 0, 0), font=font)
+        draw.text((text_x + thicc, text_y), lines[i], (0, 0, 0), font=font)
+        draw.text((text_x, text_y - thicc), lines[i], (0, 0, 0), font=font)
+        draw.text((text_x, text_y + thicc), lines[i], (0, 0, 0), font=font)
         draw.text((text_x, text_y), lines[i], (255, 255, 255), font=font)
         last_y = text_y
     return
