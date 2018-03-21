@@ -5,6 +5,10 @@ from io import BytesIO
 from resources import res_path
 
 
+def print(string):
+    pass
+
+
 def generate_meme_from_text(text: str=None, img_url: str=None):
     try:
         if not text or ';' not in text:
@@ -28,8 +32,10 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
             img.save(result, format('PNG'))
             return result.getvalue()
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         exc = '{}: {}'.format(type(e).__name__, e)
-        print("NOTE: " + exc)
+        print(exc)
         pass
     return None
 
@@ -51,7 +57,7 @@ def draw_text(msg, pos, img, draw):
     if line_count > 2:
         while 1:
             font_size -= 2
-            font = ImageFont.truetype("impact.ttf", font_size)
+            font = ImageFont.truetype(res_path + "impact.ttf", font_size)
             w, h = draw.textsize(msg, font)
             line_count = int(round((w / img_width_with_padding) + 1))
             print("try again with font_size={} => {}".format(font_size, line_count))
