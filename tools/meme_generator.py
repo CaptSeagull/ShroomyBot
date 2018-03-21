@@ -18,8 +18,11 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
         if img_url:
             resp = requests.get(img_url)
             if resp.status_code == 200 and (resp.headers.get("content-type", "")
-                                            in ("image/png", "image/jpeg", "image/webp")):
-                img = Image.open(BytesIO(resp.content))
+                                            in ("image/png",
+                                                "image/jpeg",
+                                                "image/gif",
+                                                "image/webp")):
+                img = Image.open(BytesIO(resp.content)).convert('RGBA')
         if not img:
             img = Image.open(res_path + "bear-10.jpg")
         if not img:
