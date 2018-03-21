@@ -454,9 +454,9 @@ def paste_image_from_source(source: str, image: str="https://cdn.discordapp.com/
                 if resp2.status_code == 200 and resp2.headers.get("content-type", "") in img_types:
                     with BytesIO(resp2.content) as content2:
                         foreground = Image.open(content2)
-                        desired_size = background.width // 3, background.height // 3
+                        desired_size = min(background.width // 3, background.height // 3)
                         old_size = foreground.size
-                        ratio = float(min(desired_size))/max(old_size)
+                        ratio = float(desired_size)/max(old_size)
                         new_size = tuple([int(x*ratio) for x in old_size])
                         new_foreground = foreground.resize(new_size, Image.ANTIALIAS)
                         background.paste(new_foreground, (0, background.height - new_foreground.height), new_foreground)

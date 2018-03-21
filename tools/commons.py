@@ -32,7 +32,7 @@ def get_random_math_question():
 
     action = get_random_item(operations)
     expression = "{0}{1}{2}".format(str(f_num), str(action), str(l_num))
-    answer = Decimal(0, 2)
+    answer = 0
     if action == "+":
         answer = f_num + l_num
     elif action == "-":

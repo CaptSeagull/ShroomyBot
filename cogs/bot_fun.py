@@ -47,7 +47,7 @@ class fun:
                 bot_message = "{0}!!".format(message.content.capitalize())
                 embed = discord.Embed(color=0x2b9b29)
                 embed.add_field(name="Hehe...", value=bot_message, inline=False)
-                embed.set_image(url=self.bot.user.avatar_url)
+                embed.set_thumbnail(url=self.bot.user.avatar_url)
                 return await self.bot.send_message(message.channel, embed=embed)
 
     async def on_command_error(self, error, ctx):
