@@ -11,9 +11,13 @@ def print(string):
 
 def generate_meme_from_text(text: str=None, img_url: str=None):
     try:
-        if not text or ';' not in text:
+        if not text:
             text = "did you do it right? format is;top;bottom|img url"
-        top, bottom = text.split(';', maxsplit=1)
+        if ';' not in text:
+            top = text
+            bottom = ""
+        else:
+            top, bottom = text.split(';', maxsplit=1)
         img = None
         if img_url:
             resp = requests.get(img_url)
