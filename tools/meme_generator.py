@@ -36,7 +36,7 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
         draw_text(top, "top", img, draw)
         draw_text(bottom, "bottom", img, draw)
         with BytesIO() as result:
-            img.save(result, format('PNG'))
+            img.save(result, format('PNG'), optimize=True)
             return result.getvalue()
     except Exception as e:
         import traceback

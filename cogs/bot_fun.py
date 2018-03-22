@@ -268,6 +268,10 @@ class fun:
                 exc = '{}: {}'.format(type(e).__name__, e)
                 print("NOTE: " + exc)
                 pass
+            except discord.HTTPException as e:
+                exc = '{}: {}'.format(type(e).__name__, e)
+                print("NOTE: " + exc)
+                return await self.bot.say("The image I got was way too big I'm sorry :sob:")
         return await self.bot.say("wut")
 
     @commands.group(pass_context=True)
