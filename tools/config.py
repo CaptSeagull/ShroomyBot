@@ -32,5 +32,11 @@ subreddits = {
     'wafu': "headpats",
     'kyoko': "ultimatedetective",
     'uguu': "wholesomeanimemes",
-    'chan': "wholesomegreentext"
+    'chan': "wholesomegreentext",
+    'wikihow': "disneyvacation",
+    'wholesome': "wholesomememes",
+    'butwhy': "mildlyinfuriating",
+    'pikaboo': "PeepingPooch",
+    'hellothere': "PrequelMemes",
+    'javascript': "ProgrammerHumor"
 }
