@@ -17,24 +17,7 @@ bot_extensions = ["bot_query", "bot_fun"]
 subreddits = {
     'thinking': "Thinking",
     'smug': "Smugs",
-    'woof': "shiba",
-    'cozy': "CozyPlaces",
-    'yuri': "wholesomeyuri",
-    'wakanda': "wholesomebpt",
-    'slep': "AnimalsBeingSleepy",
-    'kawaii': "awwnime",
-    'aww': "Awww",
-    'futaba': "churchoffutaba",
-    'wafu': "headpats",
-    'kyoko': "ultimatedetective",
-    'uguu': "wholesomeanimemes",
-    'chan': "wholesomegreentext",
-    'wikihow': "disneyvacation",
-    'wholesome': "wholesomememes",
-    'butwhy': "mildlyinfuriating",
-    'pikaboo': "PeepingPooch",
-    'hellothere': "PrequelMemes",
-    'javascript': "ProgrammerHumor"
+    'woof': "shiba"
 }
 
 

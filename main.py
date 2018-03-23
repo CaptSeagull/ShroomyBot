@@ -8,6 +8,8 @@ def main():
     if args.test:
         import beta
         beta.setup_env()
+    import tools
+    tools.update_subreddits()
     from bot import shroomy_bot
     shroomy_bot.run()
 

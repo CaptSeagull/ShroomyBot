@@ -78,6 +78,19 @@ async def reload(extension_name: str):
 
 
 @commands.check(is_owner)
+@shroomy.command(hidden=True)
+async def update_subreddit():
+    """Updates subreddits to be used"""
+    try:
+        import tools
+        tools.update_subreddits()
+    except Exception as ex:
+        exce = '{}: {}'.format(type(ex).__name__, ex)
+        print('Failed to update subreddits \n{}'.format(exce))
+    return await shroomy.whisper("subreddits reloaded.")
+
+
+@commands.check(is_owner)
 @shroomy.command(pass_context=True, name='echo', hidden=True)
 async def __echo_no_cmd(ctx, *args):
     message = ' '.join(args)

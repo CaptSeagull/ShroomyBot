@@ -56,3 +56,32 @@ CREATE TABLE IF NOT EXISTS api_token (
 	created_date	TIMESTAMP NOT NULL DEFAULT NOW(),
 	active			BOOLEAN NOT NULL DEFAULT 'true'
 );
+
+DROP TABLE IF EXISTS subreddit;
+CREATE TABLE IF NOT EXISTS subreddit (
+    id              SERIAL PRIMARY KEY,
+    code            VARCHAR(20) NOT NULL,
+    url             VARCHAR(100) NOT NULL,
+    image_only      BOOLEAN NOT NULL DEFAULT 'true'
+);
+
+INSERT INTO subreddit (code, url, image_only) VALUES
+    ('cozy', 'CozyPlaces', true),
+    ('yuri', 'wholesomeyuri', true),
+    ('wakanda', 'wholesomebpt', true),
+    ('slep', 'AnimalsBeingSleepy', true),
+    ('kawaii', 'awwnime', true),
+    ('awww', 'Awww', true),
+    ('aww', 'aww', true),
+    ('futaba', 'churchoffutaba', true),
+    ('wafu', 'headpats', true),
+    ('kyoko', 'ultimatedetective', true),
+    ('uguu', 'wholesomeanimemes', true),
+    ('chan', 'wholesomegreentext', true),
+    ('wikihow', 'disneyvacation', true),
+    ('wholesome', 'wholesomememes', true),
+    ('butwhy', 'mildlyinfuriating', true),
+    ('pikaboo', 'PeepingPooch', true),
+    ('hellothere', 'PrequelMemes', true),
+    ('javascript', 'ProgrammerHumor', true)
+    ;

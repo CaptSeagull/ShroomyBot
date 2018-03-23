@@ -7,6 +7,30 @@ class PostgresHandler:
         return psycopg2.connect(tools.get_postgress_sql_url(), sslmode='require')
 
 
+class Subreddit(PostgresHandler):
+    def __init__(self):
+        PostgresHandler.__init__(self)
+        self.select_img_query = "select code, url from subreddit where image_only = 'true'"
+
+    def get_image_subreddits(self):
+        query_subreddits = {}
+        try:
+            conn = self.connect()
+            with conn:
+                with conn.cursor() as curs:
+                    curs.execute(self.select_img_query)
+                    rows = curs.fetchall()
+                    conn.rollback()
+                    for row in rows:
+                        query_subreddits[row[0]] = row[1]
+
+            conn.close()
+        except Exception as e:
+            print('{}: {}'.format(type(e).__name__, e))
+        if query_subreddits:
+            tools.subreddits.update(query_subreddits)
+
+
 class KyonCoin(PostgresHandler):
     def __init__(self):
         PostgresHandler.__init__(self)
