@@ -241,6 +241,8 @@ class fun:
 
         Alternatively, image could be an attachment so format is <top>;<bottom>"""
 
+        loading_msg = await self.bot.send_message(ctx.message.channel,
+                                                  "Making memes, bear with me for a bit...")
         message = args
         img_url = None
         if args:
@@ -251,7 +253,6 @@ class fun:
         # Check if an attachment is present. Prioritize that
         if ctx.message.attachments and ctx.message.attachments[0].get('url'):
             img_url = ctx.message.attachments[0].get('url')
-        '''
         if not img_url:
             # If no image provided, use a random subreddit
             subreddit = tools.get_random_item(list(tools.subreddits.values()))
@@ -259,12 +260,12 @@ class fun:
             if not img_dict.get('error'):
                 img_item = tools.get_random_item(img_dict.get('img_list', []))
                 img_url = img_item if img_item else None
-        '''
 
         img_result = tools.generate_meme_from_text(message, img_url)
         if img_result:
             try:
                 with io.BytesIO(img_result) as new_image:
+                    await self.bot.delete_message(loading_msg)
                     return await self.bot.send_file(ctx.message.channel, fp=new_image, filename="meme.png")
             except Exception as e:
                 exc = '{}: {}'.format(type(e).__name__, e)
@@ -272,9 +273,10 @@ class fun:
                 pass
             except discord.HTTPException as e:
                 exc = '{}: {}'.format(type(e).__name__, e)
-                print("NOTE: " + exc)
-                return await self.bot.say("The image I got was way too big I'm sorry :sob:")
-        return await self.bot.say("wut")
+                print("IMAGE TOO BIG: " + exc)
+                return await self.bot.edit_message(loading_msg,
+                                                   new_content="The image I got was way too big I'm sorry :sob:")
+        return await self.bot.edit_message(loading_msg, "wut")
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):

@@ -32,6 +32,13 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
         if not img:
             return None
 
+        # If image is too big, rezise
+        desired_size = 480
+        old_size = img.size
+        ratio = float(desired_size) / max(old_size)
+        new_size = tuple([int(x * ratio) for x in old_size])
+        img = img.resize(new_size, Image.ANTIALIAS)
+
         draw = ImageDraw.Draw(img)
         draw_text(top, "top", img, draw)
         draw_text(bottom, "bottom", img, draw)
