@@ -9,10 +9,6 @@ game = os.getenv('GAME')
 oxford_app_id = os.getenv('OX_APP')
 oxford_app_key = os.getenv('OX_KEY')
 channel_spam_id = os.getenv('CHANNEL_ROOM')
-sql_db = os.getenv('SQL_DB')
-sql_host = os.getenv('SQL_HOST')
-sql_username = os.getenv('SQL_USERNAME')
-sql_password = os.getenv('SQL_PASSWORD')
 reddit_client_id = os.getenv('REDDIT_APP')
 reddit_secret_id = os.getenv('REDDIT_SECRET')
 reddit_user_agent = os.getenv('REDDIT_USER_AGENT')
@@ -40,3 +36,8 @@ subreddits = {
     'hellothere': "PrequelMemes",
     'javascript': "ProgrammerHumor"
 }
+
+
+def get_postgress_sql_url():
+    """the url may get updated so use function to retrieve new value"""
+    return os.environ['DATABASE_URL']

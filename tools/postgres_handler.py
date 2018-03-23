@@ -3,14 +3,8 @@ import tools
 
 
 class PostgresHandler:
-    def __init__(self):
-        self.dbname = tools.sql_db
-        self.username = tools.sql_username
-        self.password = tools.sql_password
-        self.host = tools.sql_host
-
     def connect(self):
-        return psycopg2.connect(dbname=self.dbname, user=self.username, password=self.password, host=self.host)
+        return psycopg2.connect(tools.get_postgress_sql_url(), sslmode='require')
 
 
 class KyonCoin(PostgresHandler):
