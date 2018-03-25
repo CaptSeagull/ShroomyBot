@@ -304,7 +304,7 @@ def get_dictionary(word: str="", app_id: str="", app_key: str=""):
     return dict_wrapper
 
 
-def get_trivia_question(difficulty: str= None, question_type: str= None, category: int= 31):
+def get_trivia_question(difficulty: str= None, question_type: str= None, category: int= None):
     url = 'https://opentdb.com/'
     command_token = "api_token.php"
     command_request = "api.php"
@@ -334,7 +334,9 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
             token.update_token(api_name, token_id)  # update new token on the database
 
     # Actual query for the trivia
-    params = dict(amount=1, category=category, token=token_id)
+    params = dict(amount=1, token=token_id)
+    if category:
+        params['category'] = category
     if difficulty:
         params['difficulty'] = difficulty
     if question_type:

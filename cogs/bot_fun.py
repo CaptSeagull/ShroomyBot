@@ -178,12 +178,20 @@ class fun:
         """
         await self.ask_math(ctx.message)
 
-    @ask.command(pass_context=True)
+    @ask.group(pass_context=True)
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def trivia(self, ctx):
+        if ctx.invoked_subcommand is None:
+            return await self.ask_trivia(ctx.message)
+
+    @trivia.command(pass_context=True)
+    @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
+    async def anime(self, ctx):
+        return await self.ask_trivia(ctx.message, 31)
+
+    async def ask_trivia(self, message, category: int=None):
         """Ask you for a random trivia question."""
-        message = ctx.message
-        question_dict = tools.get_trivia_question()
+        question_dict = tools.get_trivia_question(category=category)
         if not question_dict.get('error', ""):
             difficulty_name = question_dict['difficulty']
             difficulty = "Difficulty: {0}".format(difficulty_name.title())
@@ -197,7 +205,7 @@ class fun:
 
             message_block = "I have a question for you: ```{0}\n\n{1}\n\t{2}\n\n{3}```".format(
                 difficulty, question, choices, footer)
-            await self.bot.say(message_block)
+            await self.bot.send_message(message.channel, message_block)
             try:
                 reply_message = await self.bot.wait_for_message(
                     author=message.author,
@@ -207,8 +215,8 @@ class fun:
                 reply_message = None
                 pass
             if reply_message is None:
-                return await self.bot.say(
-                    "Oh, sorry, you took too long. Try again")
+                return await self.bot.send_message(message.channel,
+                                                   "Oh, sorry, you took too long. Try again")
 
             correct_num = question_dict['correct']
             answer_num = None
@@ -225,15 +233,16 @@ class fun:
                     coin_amount = 3
                 else:
                     coin_amount = 1
-                await self.bot.say("That's correct!")
+                await self.bot.send_message(message.channel, "That's correct!")
                 kyoncoin = tools.KyonCoin()
                 coins = kyoncoin.update_coins(message.server.id, message.author.id, coin_amount)
                 await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
             else:
-                return await self.bot.say("Sorry but the corrrect answer is: {0}".format(
-                    question_dict['correct_answer']))
+                return await self.bot.send_message(message.channel,
+                                                   "Sorry but the corrrect answer is: {0}".format(
+                                                       question_dict['correct_answer']))
         else:
-            return await self.bot.say(question_dict['error'])
+            return await self.bot.send_message(message.channel, question_dict['error'])
 
     @commands.command(pass_context=True)
     async def meme(self, ctx, *, args: str=None):
