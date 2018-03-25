@@ -183,6 +183,7 @@ class fun:
     async def trivia(self, ctx):
         if ctx.invoked_subcommand is None:
             return await self.ask_trivia(ctx.message)
+        return await self.ask_trivia(ctx.message)
 
     @trivia.command(pass_context=True)
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
