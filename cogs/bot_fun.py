@@ -181,9 +181,9 @@ class fun:
     @ask.group(pass_context=True)
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def trivia(self, ctx):
+        print(ctx.invoked_subcommand)
         if ctx.invoked_subcommand is None:
             return await self.ask_trivia(ctx.message)
-        return await self.ask_trivia(ctx.message)
 
     @trivia.command(pass_context=True)
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
