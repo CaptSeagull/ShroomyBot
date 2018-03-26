@@ -181,17 +181,17 @@ class fun:
     @ask.group(pass_context=True)
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def trivia(self, ctx):
-        # pls debug 
-        if ctx.subcommand_passed is not "anime":
+        """Ask you for a random trivia question."""
+        if ctx.subcommand_passed != "anime":
             return await self.ask_trivia(ctx.message)
 
     @trivia.command(pass_context=True)
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def anime(self, ctx):
+        """Ask you for a random anime trivia question."""
         return await self.ask_trivia(ctx.message, 31)
 
     async def ask_trivia(self, message, category: int=None):
-        """Ask you for a random trivia question."""
         question_dict = tools.get_trivia_question(category=category)
         if not question_dict.get('error', ""):
             difficulty_name = question_dict['difficulty']

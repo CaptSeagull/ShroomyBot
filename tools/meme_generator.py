@@ -103,11 +103,14 @@ def draw_text(msg, pos, img, draw):
         if next_cut == len(msg) or msg[next_cut] == " ":
             print("may cut")
         else:
-            if " " in msg:
-                print("may not cut")
+            print("may not cut")
+            try:
                 while msg[next_cut] != " ":
                     next_cut += 1
                 print("new cut: {}".format(next_cut))
+            except IndexError:
+                print("Cannot cut")
+                next_cut -= 1
 
         line = msg[cut:next_cut].strip()
 
@@ -116,9 +119,13 @@ def draw_text(msg, pos, img, draw):
         if not is_last and w > img_width_with_padding:
             print("overshot")
             next_cut -= 1
-            while msg[next_cut] != " ":
-                next_cut -= 1
-            print("new cut: {}".format(next_cut))
+            try:
+                while msg[next_cut] != " ":
+                    next_cut -= 1
+                print("new cut: {}".format(next_cut))
+            except IndexError:
+                print("Overshot")
+                next_cut += 1
 
         last_cut = next_cut
         lines.append(msg[cut:next_cut].strip())
