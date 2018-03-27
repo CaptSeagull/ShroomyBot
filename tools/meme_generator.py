@@ -1,3 +1,5 @@
+import random
+
 import requests
 from PIL import Image, ImageFont, ImageDraw
 from io import BytesIO
@@ -34,7 +36,10 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
                                                 "image/jpeg",
                                                 "image/gif",
                                                 "image/webp")):
-                img = Image.open(BytesIO(resp.content)).convert('RGBA')
+                img = Image.open(BytesIO(resp.content))
+                if hasattr(img, 'is_animated') and img.is_animated:
+                    img.seek(random.randint(0, img.n_frames - 1))
+                img = img.convert('RGBA')
         if not img:
             img = Image.open(res_path + "bear-10.jpg")
         if not img:
