@@ -5,6 +5,7 @@ from random import random
 import logging
 
 # Third party import
+from datetime import datetime
 import discord
 from decimal import Decimal, InvalidOperation
 from discord.ext import commands
@@ -37,7 +38,8 @@ class fun:
             if image:
                 try:
                     with io.BytesIO(image) as new_image:
-                        return await self.bot.send_file(message.channel, fp=new_image, filename="hehe.png")
+                        filename = "{0}-{1}.{2}".format("hehe", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
+                        return await self.bot.send_file(message.channel, fp=new_image, filename=filename)
                 except Exception:
                     logging.exception("Exception when generating an image")
                     pass
@@ -272,8 +274,9 @@ class fun:
         if img_result:
             try:
                 with io.BytesIO(img_result) as new_image:
+                    filename = "{0}-{1}.{2}".format("meme", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
                     await self.bot.delete_message(loading_msg)
-                    return await self.bot.send_file(ctx.message.channel, fp=new_image, filename="meme.png")
+                    return await self.bot.send_file(ctx.message.channel, fp=new_image, filename=filename)
             except discord.HTTPException:
                 logging.exception("Exception when uploading meme image.")
                 return await self.bot.edit_message(loading_msg,

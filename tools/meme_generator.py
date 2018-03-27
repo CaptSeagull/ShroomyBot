@@ -6,11 +6,21 @@ import logging
 from resources import res_path
 
 
+def set_font_name(text):
+    """Set font to unicode if it contains non english."""
+    try:
+        text.encode(encoding='utf-8').decode('ascii')
+    except UnicodeDecodeError:
+        return "ARIALUNI.TTF"
+    return "impact.ttf"
+
+
 def generate_meme_from_text(text: str=None, img_url: str=None):
     try:
         if not text:
             logging.warning("No text entered")
             text = "did you do it right? format is;top;bottom|img url"
+        font_name = set_font_name(text)
         if ';' not in text:
             top = text
             bottom = ""
@@ -31,15 +41,16 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
             return None
 
         # If image is too big, rezise
-        desired_size = 480
-        old_size = img.size
-        ratio = float(desired_size) / max(old_size)
-        new_size = tuple([int(x * ratio) for x in old_size])
-        img = img.resize(new_size, Image.ANTIALIAS)
+        if min(480, img.width, img.height) == 480:
+            desired_size = 480
+            old_size = img.size
+            ratio = float(desired_size) / max(old_size)
+            new_size = tuple([int(x * ratio) for x in old_size])
+            img = img.resize(new_size, Image.ANTIALIAS)
 
         draw = ImageDraw.Draw(img)
-        logging.debug(draw_text(top, "top", img, draw))
-        logging.debug(draw_text(bottom, "bottom", img, draw))
+        logging.debug(draw_text(top, "top", img, draw, font_name))
+        logging.debug(draw_text(bottom, "bottom", img, draw, font_name))
         with BytesIO() as result:
             img.save(result, format('PNG'), optimize=True)
             return result.getvalue()
@@ -48,13 +59,13 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
     return None
 
 
-def draw_text(msg, pos, img, draw):
+def draw_text(msg, pos, img, draw, font_name):
     log_string = ["Starting draw_text for: " + pos]
 
     font_size = img.height // 8
     lines = []
 
-    font = ImageFont.truetype(res_path + "impact.ttf", font_size)
+    font = ImageFont.truetype(res_path + font_name, font_size)
     w, h = draw.textsize(msg, font)
 
     img_width_with_padding = img.width * 0.99
@@ -67,7 +78,7 @@ def draw_text(msg, pos, img, draw):
     if line_count > 2:
         while 1:
             font_size -= 2
-            font = ImageFont.truetype(res_path + "impact.ttf", font_size)
+            font = ImageFont.truetype(res_path + font_name, font_size)
             w, h = draw.textsize(msg, font)
             line_count = int(round((w / img_width_with_padding) + 1))
             log_string.append("try again with font_size={} => {}".format(font_size, line_count))
@@ -133,7 +144,7 @@ def draw_text(msg, pos, img, draw):
     if pos == "bottom":
         last_y = img.height - h * (line_count+1) - 10
 
-    thicc = 4
+    thicc = 3 if "impact" in font_name else 1
     for i in range(0, line_count):
         w, h = draw.textsize(lines[i], font)
         text_x = img.width/2 - w/2
@@ -142,10 +153,10 @@ def draw_text(msg, pos, img, draw):
         #  else:
         #    textY = img.height - h * i
         text_y = last_y + h
-        draw.text((text_x-thicc, text_y-thicc), lines[i], (0,0,0), font=font)
-        draw.text((text_x+thicc, text_y-thicc), lines[i], (0,0,0), font=font)
-        draw.text((text_x+thicc, text_y+thicc), lines[i], (0,0,0), font=font)
-        draw.text((text_x-thicc, text_y+thicc), lines[i], (0,0,0), font=font)
+        draw.text((text_x-thicc, text_y-thicc), lines[i], (0, 0, 0), font=font)
+        draw.text((text_x+thicc, text_y-thicc), lines[i], (0, 0, 0), font=font)
+        draw.text((text_x+thicc, text_y+thicc), lines[i], (0, 0, 0), font=font)
+        draw.text((text_x-thicc, text_y+thicc), lines[i], (0, 0, 0), font=font)
         draw.text((text_x - thicc, text_y), lines[i], (0, 0, 0), font=font)
         draw.text((text_x + thicc, text_y), lines[i], (0, 0, 0), font=font)
         draw.text((text_x, text_y - thicc), lines[i], (0, 0, 0), font=font)
