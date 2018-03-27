@@ -318,7 +318,8 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
     if token_id:
         date_lambda = (datetime.now() - create_date)
         hours = date_lambda.seconds//3600
-        request_token = hours >= 6
+        days = date_lambda.days
+        request_token = days > 0 or hours >= 6
 
     # If we require a new token
     if request_token:
