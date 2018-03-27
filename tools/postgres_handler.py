@@ -1,5 +1,6 @@
 import psycopg2
 import tools
+import logging
 
 
 class PostgresHandler:
@@ -25,8 +26,8 @@ class Subreddit(PostgresHandler):
                         query_subreddits[row[0]] = row[1]
 
             conn.close()
-        except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+        except Exception:
+            logging.exception("Exception when trying to retrieve image subreddits")
         if query_subreddits:
             tools.subreddits.update(query_subreddits)
 
@@ -53,8 +54,8 @@ class KyonCoin(PostgresHandler):
                         coins = result_one[0]
 
             conn.close()
-        except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+        except Exception:
+            logging.exception("Exception when trying to retrieve kyoncoins")
         return coins
 
     def update_coins(self, server_id, user_id, amount):
@@ -74,7 +75,7 @@ class KyonCoin(PostgresHandler):
 
             conn.close()
         except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+            logging.exception("Exception when trying to update kyon coins")
         return amount
 
 
@@ -111,8 +112,8 @@ class PokemonSearch(PostgresHandler):
                                      }
             conn.rollback()
             conn.close()
-        except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+        except Exception:
+            logging.exception("Exception when trying to retrieve pkmn")
         return pkmn_dict
 
     def save_pkmn_data(self, pkmn_data: dict):
@@ -134,8 +135,8 @@ class PokemonSearch(PostgresHandler):
                                   pkmn_data['pkmn_sprite']))
                     conn.commit()
             conn.close()
-        except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+        except Exception:
+            logging.exception("Exception when trying to save pkmn info to db")
 
 
 class Token(PostgresHandler):
@@ -162,8 +163,8 @@ class Token(PostgresHandler):
                     if result_query and result_query[2]:
                         result_token, result_date = result_query[0], result_query[1]
             conn.close()
-        except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+        except Exception:
+            logging.exception("Exception when trying to retrieve {} token".format(name))
         return result_token, result_date
 
     def update_token(self, name: str, token_id: str):
@@ -181,8 +182,8 @@ class Token(PostgresHandler):
                         curs.execute(self.insert_token_query, (token_id, name))
                     conn.commit()
             conn.close()
-        except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+        except Exception:
+            logging.exception("Exception when trying to update {} token".format(name))
 
     def inactive_token(self, name: str):
         """Sets the given api on the database inactive so next time api is called,
@@ -195,4 +196,4 @@ class Token(PostgresHandler):
                     conn.commit()
             conn.close()
         except Exception as e:
-            print('{}: {}'.format(type(e).__name__, e))
+            logging.exception("Exception when trying to inactive {} token".format(name))

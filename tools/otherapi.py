@@ -1,4 +1,5 @@
 # System imports
+import logging
 import urllib
 from html import unescape
 from datetime import datetime
@@ -467,9 +468,8 @@ def paste_image_from_source(source: str, image: str="https://cdn.discordapp.com/
                             background.save(result, format('PNG'))
                             return result.getvalue()
     except MissingSchema:
+        logging.debug("Source was not a valid url")
         return None
-    except Exception as e:
-        exc = '{}: {}'.format(type(e).__name__, e)
-        print("NOTE: " + exc)
-        pass
+    except Exception:
+        logging.exception("Exception when pasting image from source")
     return None

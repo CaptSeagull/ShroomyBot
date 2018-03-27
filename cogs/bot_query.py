@@ -1,4 +1,6 @@
 # imports needed to run discord
+from random import random
+
 import discord
 from discord.ext import commands
 
@@ -9,6 +11,14 @@ import tools
 class query:
     def __init__(self, bot):
         self.bot = bot
+
+    async def on_message(self, message):
+        # Only listen to messages from other people and none bots
+        if message.author == self.bot.user or message.author.bot:
+            return
+
+        if random() < 0.01 and message.content.startswith("<:hmm"):
+            return await self.random_reddit_image(message, 'Thinking')
 
     # [pkmn]
     @commands.command()

@@ -2,6 +2,7 @@ from random import randint, shuffle
 from decimal import Decimal
 import os
 import json
+import logging
 
 
 def to_lower(string: str):
@@ -57,8 +58,8 @@ def get_json_from_file(directory: str= "/", filename: str= "", relative_dir: boo
         if not os.path.exists(directory):
             try:
                 os.makedirs(directory)
-            except OSError as e:
-                print("OSError: " + str(e))
+            except OSError:
+                logging.exception("Exception when creating json directory")
                 result['success'] = False
                 return result
         # File's path, create a json file if not exists; otherwise, we parse the json file data
@@ -72,15 +73,15 @@ def get_json_from_file(directory: str= "/", filename: str= "", relative_dir: boo
         try:
             with open(abs_filename_path, "r") as f:
                 result['json'] = json.load(f)
-        except ValueError as e:
-            print("ValueError: " + str(e))
+        except ValueError:
+            logging.exception("Exception when reading json file")
     else:
         # If no file exists, try to create the file by dumping an empty json file
         try:
             with open(abs_filename_path, "w") as f:
                 json.dump(result['json'], f)
-        except Exception as e:
-            print("Writing exception: " + str(e))
+        except Exception:
+            logging.exception("Exception when writing json file")
             result['success'] = False
 
     return result
@@ -112,7 +113,7 @@ def update_file_to_json_contents(result_dict: dict={}, key_to_update: str=None, 
     try:
         with open(filepath, 'w') as f:
             json.dump(dict_to_save, f)
-    except Exception as e:
-        print("Exception when writing the file: " + str(e))
+    except Exception:
+        logging.exception("Exception when writing the file")
         return False
     return True

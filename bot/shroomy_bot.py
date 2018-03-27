@@ -1,5 +1,6 @@
 # System imports
 import platform
+import logging
 
 # imports needed to run discord
 import discord
@@ -18,16 +19,15 @@ shroomy = Bot(description="Shroomy Bot " + config.version,
 # Initialize event when Bot is first invited
 @shroomy.event
 async def on_ready():
-    print('Logged in as {0} (ID:{1})'.format(shroomy.user.name, shroomy.user.id))
-    print('--------')
-    print('Current Discord.py Version: {} | Current Python Version: {}'
-          .format(discord.__version__, platform.python_version()))
-    print('--------')
-    print('Current Version: {0}'.format(config.version))
-    print('--------')
-    print('Use this link to invite {}:'.format(shroomy.user.name))
-    print('https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8'
-          .format(shroomy.user.id))
+    presence_string = '\n--------\n'.join([
+        "Logged in as {0} (ID:{1})".format(shroomy.user.name, shroomy.user.id),
+        "Current Discord.py Version: {} | Current Python Version: {}".format(
+            discord.__version__, platform.python_version()),
+        "Current Version: {0}".format(config.version),
+        "Use this link to invite {}:".format(shroomy.user.name),
+        "https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8".format(shroomy.user.id)
+    ])
+    logging.info(presence_string)
     return await shroomy.change_presence(game=discord.Game(name=config.game))
 
 
@@ -51,9 +51,8 @@ async def load(extension_name: str):
     try:
         shroomy.load_extension(extension_name)
     except (AttributeError, ImportError) as e:
-        await shroomy.whisper("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
-        return
-    await shroomy.whisper("{} loaded.".format(extension_name))
+        return await shroomy.whisper("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+    return await shroomy.whisper("{} loaded.".format(extension_name))
 
 
 @commands.check(is_owner)
@@ -61,7 +60,7 @@ async def load(extension_name: str):
 async def unload(extension_name: str):
     """Unloads an extension."""
     shroomy.unload_extension(extension_name)
-    await shroomy.whisper("{} unloaded.".format(extension_name))
+    return await shroomy.whisper("{} unloaded.".format(extension_name))
 
 
 @commands.check(is_owner)
@@ -73,7 +72,7 @@ async def reload(extension_name: str):
         shroomy.load_extension(extension_name)
     except Exception as ex:
         exce = '{}: {}'.format(type(ex).__name__, ex)
-        print('Failed to load extension {}\n{}'.format(extension_name, exce))
+        logging.ERROR('Failed to load extension {}\n{}'.format(extension_name, exce))
     return await shroomy.whisper("{} reloaded.".format(extension_name))
 
 
@@ -86,7 +85,7 @@ async def update_subreddit():
         tools.update_subreddits()
     except Exception as ex:
         exce = '{}: {}'.format(type(ex).__name__, ex)
-        print('Failed to update subreddits \n{}'.format(exce))
+        logging.ERROR('Failed to update subreddits \n{}'.format(exce))
     return await shroomy.whisper("subreddits reloaded.")
 
 
@@ -94,7 +93,7 @@ async def update_subreddit():
 @shroomy.command(pass_context=True, name='echo', hidden=True)
 async def __echo_no_cmd(ctx, *args):
     message = ' '.join(args)
-    print(ctx.message.author.name + " called echo: " + ctx.message.content)
+    logging.DEBUG(ctx.message.author.name + " called echo: " + ctx.message.content)
     await shroomy.delete_message(ctx.message)
     embed = discord.Embed(color=0x2b9b29)
     embed.add_field(name="Hey!", value=message, inline=False)
@@ -109,7 +108,7 @@ def run():
             shroomy.load_extension(cogs_dir + "." + extension)
         except Exception as e:
             exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))
+            logging.ERROR('Failed to load extension {}\n{}'.format(extension, exc))
 
     shroomy.run(config.app_id)
 

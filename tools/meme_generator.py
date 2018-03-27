@@ -1,17 +1,15 @@
 import requests
 from PIL import Image, ImageFont, ImageDraw
 from io import BytesIO
+import logging
 
 from resources import res_path
-
-
-def print(string):
-    pass
 
 
 def generate_meme_from_text(text: str=None, img_url: str=None):
     try:
         if not text:
+            logging.warning("No text entered")
             text = "did you do it right? format is;top;bottom|img url"
         if ';' not in text:
             top = text
@@ -40,21 +38,19 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
         img = img.resize(new_size, Image.ANTIALIAS)
 
         draw = ImageDraw.Draw(img)
-        draw_text(top, "top", img, draw)
-        draw_text(bottom, "bottom", img, draw)
+        logging.debug(draw_text(top, "top", img, draw))
+        logging.debug(draw_text(bottom, "bottom", img, draw))
         with BytesIO() as result:
             img.save(result, format('PNG'), optimize=True)
             return result.getvalue()
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        exc = '{}: {}'.format(type(e).__name__, e)
-        print(exc)
-        pass
+    except Exception:
+        logging.exception("Exception when generating a meme")
     return None
 
 
 def draw_text(msg, pos, img, draw):
+    log_string = ["Starting draw_text for: " + pos]
+
     font_size = img.height // 8
     lines = []
 
@@ -74,13 +70,13 @@ def draw_text(msg, pos, img, draw):
             font = ImageFont.truetype(res_path + "impact.ttf", font_size)
             w, h = draw.textsize(msg, font)
             line_count = int(round((w / img_width_with_padding) + 1))
-            print("try again with font_size={} => {}".format(font_size, line_count))
+            log_string.append("try again with font_size={} => {}".format(font_size, line_count))
             if line_count < 3 or font_size < 10:
                 break
 
-    print("img.width: {}, text width: {}".format(img.width, w))
-    print("Text length: {}".format(len(msg)))
-    print("Lines: {}".format(line_count))
+    log_string.append("img.width: {}, text width: {}".format(img.width, w))
+    log_string.append("Text length: {}".format(len(msg)))
+    log_string.append("Lines: {}".format(line_count))
 
     # 2. divide text in X lines
     last_cut = 0
@@ -97,19 +93,19 @@ def draw_text(msg, pos, img, draw):
             next_cut = len(msg)
             is_last = True
 
-        print("cut: {} -> {}".format(cut, next_cut))
+        log_string.append("cut: {} -> {}".format(cut, next_cut))
 
         # make sure we don't cut words in half
         if next_cut == len(msg) or msg[next_cut] == " ":
-            print("may cut")
+            log_string.append("may cut")
         else:
-            print("may not cut")
+            log_string.append("may not cut")
             try:
                 while msg[next_cut] != " ":
                     next_cut += 1
-                print("new cut: {}".format(next_cut))
+                log_string.append("new cut: {}".format(next_cut))
             except IndexError:
-                print("Cannot cut")
+                log_string.append("Cannot cut")
                 next_cut -= 1
 
         line = msg[cut:next_cut].strip()
@@ -117,20 +113,20 @@ def draw_text(msg, pos, img, draw):
         # is line still fitting ?
         w, h = draw.textsize(line, font)
         if not is_last and w > img_width_with_padding:
-            print("overshot")
+            log_string.append("overshot")
             next_cut -= 1
             try:
                 while msg[next_cut] != " ":
                     next_cut -= 1
-                print("new cut: {}".format(next_cut))
+                log_string.append("new cut: {}".format(next_cut))
             except IndexError:
-                print("Overshot")
+                log_string.append("Overshot")
                 next_cut += 1
 
         last_cut = next_cut
         lines.append(msg[cut:next_cut].strip())
 
-    print(lines)
+    log_string.append(str(lines))
 
     # 3. print each line centered
     last_y = -h
@@ -138,7 +134,7 @@ def draw_text(msg, pos, img, draw):
         last_y = img.height - h * (line_count+1) - 10
 
     thicc = 4
-    for i in range(0,line_count):
+    for i in range(0, line_count):
         w, h = draw.textsize(lines[i], font)
         text_x = img.width/2 - w/2
         #  if pos == "top":
@@ -156,4 +152,4 @@ def draw_text(msg, pos, img, draw):
         draw.text((text_x, text_y + thicc), lines[i], (0, 0, 0), font=font)
         draw.text((text_x, text_y), lines[i], (255, 255, 255), font=font)
         last_y = text_y
-    return
+    return '\n'.join(log_string)

@@ -2,6 +2,7 @@
 import asyncio
 import io
 from random import random
+import logging
 
 # Third party import
 import discord
@@ -27,8 +28,6 @@ class fun:
         if message.content.startswith(self.bot.user.mention):
             if "ask me" in message.content:
                 return await self.ask_math(message)
-        if random() < 0.01 and message.content.startswith("<:hmm"):
-            return await self.random_reddit_image(message, 'Thinking')
 
         # Do not echo if a mention in beginning or prefix
         if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
@@ -39,9 +38,8 @@ class fun:
                 try:
                     with io.BytesIO(image) as new_image:
                         return await self.bot.send_file(message.channel, fp=new_image, filename="hehe.png")
-                except Exception as e:
-                    exc = '{}: {}'.format(type(e).__name__, e)
-                    print("NOTE: " + exc)
+                except Exception:
+                    logging.exception("Exception when generating an image")
                     pass
             else:
                 bot_message = "{0}!!".format(message.content.capitalize())
@@ -51,6 +49,7 @@ class fun:
                 return await self.bot.send_message(message.channel, embed=embed)
 
     async def on_command_error(self, error, ctx):
+        logging.error(error)
         channel = ctx.message.channel
         if isinstance(error, commands.CommandOnCooldown):
             command = ctx.invoked_subcommand
@@ -59,8 +58,6 @@ class fun:
                           + "Try again after a bit.").format(
                     ctx.message.author.mention, command
                 ))
-        else:
-            print(str(error))
 
     async def status_task(self):
         channel = self.bot.get_channel(tools.channel_spam_id)
@@ -277,15 +274,13 @@ class fun:
                 with io.BytesIO(img_result) as new_image:
                     await self.bot.delete_message(loading_msg)
                     return await self.bot.send_file(ctx.message.channel, fp=new_image, filename="meme.png")
-            except Exception as e:
-                exc = '{}: {}'.format(type(e).__name__, e)
-                print("NOTE: " + exc)
-                pass
-            except discord.HTTPException as e:
-                exc = '{}: {}'.format(type(e).__name__, e)
-                print("IMAGE TOO BIG: " + exc)
+            except discord.HTTPException:
+                logging.exception("Exception when uploading meme image.")
                 return await self.bot.edit_message(loading_msg,
                                                    new_content="The image I got was way too big I'm sorry :sob:")
+            except Exception:
+                logging.exception("Exception when trying to generate meme image")
+                pass
         return await self.bot.edit_message(loading_msg, "wut")
 
     @commands.group(pass_context=True)
