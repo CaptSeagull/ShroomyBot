@@ -1,4 +1,5 @@
 # System imports
+import json
 import logging
 import urllib
 from html import unescape
@@ -146,7 +147,9 @@ def get_random_quote():
                       timeout=30)
     if r.status_code == 200:
         try:
-            result = r.json()
+            # forismatic only has single quotes and it errors out when generating for json
+            raw_content = r.text.replace('\\', '\\\\')
+            result = json.loads(raw_content)
             result_dict = {
                 'quote': result.get('quoteText', ""),
                 'author': result.get('quoteAuthor', ""),
@@ -155,7 +158,7 @@ def get_random_quote():
                 }
             return result_dict
         except JSONDecodeError as jsonex:
-            print(r.text)
+            logging.exception("Error occured when retrieving a line")
             return dict(error="Site gave me an error again. Error: " + str(jsonex))
     return dict(error="No quote found.")
 
