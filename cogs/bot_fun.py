@@ -45,7 +45,7 @@ class fun:
                     pass
             else:
                 bot_message = "{0}!!".format(message.content.capitalize())
-                embed = discord.Embed(color=0x2b9b29)
+                embed = discord.Embed(color=message.author.color)
                 embed.add_field(name="Hehe...", value=bot_message, inline=False)
                 embed.set_thumbnail(url=self.bot.user.avatar_url)
                 return await self.bot.send_message(message.channel, embed=embed)
@@ -210,7 +210,7 @@ class fun:
                 reply_message = await self.bot.wait_for_message(
                     author=message.author,
                     channel=message.channel,
-                    timeout=20.0)
+                    timeout=time)
             except asyncio.TimeoutError:
                 reply_message = None
                 pass

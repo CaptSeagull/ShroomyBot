@@ -200,40 +200,44 @@ def get_jisho_page(query):
         return dict(error=("Something else happened. Error Code: " + str(r.status_code)))
 
 
-def parse_jisho_page(json, result_index=0):
-    wrapper = {'source': "http://jisho.org"}
+def parse_jisho_page(json_result):
+    wrapper_result = {'source': "http://jisho.org"}
     
-    data_list = json.get('data', [])
-    data_size = len(data_list)
+    data_list = json_result.get('data', [])
     
     if data_list:
-        # Get requested index. If size is smaller than index, get last index of the list
-        if result_index > data_size - 1:
-            result_index = data_size - 1
+        term_list = []
+        wrapper_result['terms'] = term_list
         
         # Retrieve the result based on the result_index
-        data_dict = data_list[result_index]
-        jp_list = data_dict.get('japanese', [])
-        senses_list = data_dict.get('senses', [])
+        for data_dict in data_list:
+            wrapper = {}
+            jp_list = data_dict.get('japanese', [])
+            senses_list = data_dict.get('senses', [])
 
-        # Retrieve first item of jp_list (should be only item)        
-        jp_dict = jp_list[0] if jp_list else {}
-        # Retrieve writing and reading
-        wrapper['writing'] = jp_dict.get('word', "")
-        wrapper['reading'] = jp_dict.get('reading', "")
+            # Retrieve first item of jp_list (should be only item)
+            jp_dict = jp_list[0] if jp_list else {}
+            # Retrieve writing and reading
+            wrapper['writing'] = jp_dict.get('word', "")
+            wrapper['reading'] = jp_dict.get('reading', "")
 
-        # Retrieve first item of senses_list (should be only item)
-        senses_dict = senses_list[0] if senses_list else {}
-        eng_def_list = senses_dict.get('english_definitions', [])
-        speech_type_list = senses_dict.get('parts_of_speech', [])
-        
-        # Retrieve english definitions and types of speech
-        wrapper['definitions'] = (eng_def for eng_def in eng_def_list)
-        wrapper['speech_type'] = (speech for speech in speech_type_list)
+            # Store each senses definition in a dict mapped by their type of speech
+            wrapper['senses'] = {}
+            for senses in senses_list:
+                key = '; '.join(senses.get('parts_of_speech', []))
+                definitions = '; '.join(senses.get('english_definitions', []))
+
+                curr_sense_list = wrapper['senses'].get(key)
+                if not curr_sense_list:
+                    curr_sense_list = []
+                    wrapper['senses'][key] = curr_sense_list
+                curr_sense_list.append(definitions)
+            logging.debug(str(wrapper['senses']))
+            term_list.append(wrapper)
     else:
-        wrapper['error'] = "No results found for the word requested."
+        wrapper_result['error'] = "No results found for the word requested."
     
-    return wrapper
+    return wrapper_result
 
 
 def get_random_uk_doge():
@@ -282,9 +286,10 @@ def get_dictionary(word: str="", app_id: str="", app_key: str=""):
     dict_wrapper = {'source': "https://www.oxforddictionaries.com"}
     language = 'en'
 
-    url = 'https://od-api.oxforddictionaries.com:443/api/v1/entries/' + language + '/' + word.lower()
+    url = 'https://od-api.oxforddictionaries.com:443/api/v1/entries/' + language + '/' + word
 
     r = requests.get(url, headers={'app_id': app_id, 'app_key': app_key}, timeout=30)
+    logging.debug(r.url)
     if r.status_code == 200:
         result = r.json()
         results = result.get('results', [{}])
@@ -383,51 +388,6 @@ def get_trivia_question(difficulty: str= None, question_type: str= None, categor
             source=source)
     else:
         return dict(error="Couldn't find a question online whoops Error Code: " + str(r.status_code))
-
-'''
-def get_thinking_image_url(subreddit: str='Thinking'):
-    # Retrieve a token from reddit for OAuth2
-    request_token, request_token_type = get_reddit_token()
-    if not request_token:
-        print("Error on Retrieving Reddit Token")
-        return dict(error=":thinking:")
-
-    # Get actual query if done
-    url = "https://oauth.reddit.com/r/{0}/top/.json".format(subreddit)
-    params = dict(sort="top", t="week", limit="30")
-    headers = {'Authorization': "{0} {1}".format(request_token_type, request_token),
-               'User-Agent': config.reddit_user_agent}
-
-    r = requests.get(url, params=params, headers=headers)
-    if r.status_code == 200:
-        result = r.json()
-        result_data = result.get('data', {})
-        image_url_list = []
-        for children in result_data.get('children', []):
-            data = children.get('data')
-            if (not data
-                    or data.get('post_hint') == "self"
-                    or data.get('locked', "true") == "true"):
-                continue
-            thumbnail = data.get('thumbnail')
-            image = data.get('url')
-            image_url_list.append(image if image else thumbnail)
-        return dict(img_list=image_url_list)
-    print("Error while requesting reddit data " + str(r.status_code))
-    return dict(error=":thinking:")
-
-
-def get_reddit_token():
-    url = "https://www.reddit.com/api/"
-    version = "v1"
-    command = "/access_token"
-    client_auth = requests.auth.HTTPBasicAuth(config.reddit_client_id, config.reddit_secret_id)
-    post_data = dict(grant_type="client_credentials")
-    headers = {'User-Agent': config.reddit_user_agent}
-    r = requests.post(url + version + command, auth=client_auth, data=post_data, headers=headers)
-    result = r.json()
-    return result.get('access_token'), result.get('token_type')
-'''
 
 
 def get_subreddit_image_list(subreddit: str='Thinking'):
