@@ -39,10 +39,12 @@ def generate_meme_from_text(text: str=None, img_url: str=None, gif_index: int=No
                 img = Image.open(BytesIO(resp.content))
                 if hasattr(img, 'is_animated') and img.is_animated:
                     frames = img.n_frames
-                    if gif_index and gif_index < frames:
+                    logging.debug("1 - frames: {}".format(frames))
+                    if gif_index is not None and gif_index < frames:
                         frames = gif_index
                     else:
                         frames = random.randint(0, frames - 1)
+                    logging.debug("2 - frames: {}".format(frames))
                     img.seek(frames)
                 img = img.convert('RGBA')
         if not img:

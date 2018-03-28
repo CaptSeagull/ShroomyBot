@@ -258,11 +258,12 @@ class fun:
         if args:
             msg_list = args.split('|', maxsplit=2)
             message = msg_list[0]
-            if len(msg_list) == 2:
-                img_url = msg_list[1]
-            if len(msg_list) == 3:
+            if len(msg_list) > 1:
+                img_url = msg_list[1].strip()
+            if len(msg_list) > 2:
                 try:
                     gif_index = int(msg_list[2])
+                    logging.debug("gif_index = {}".format(gif_index))
                 except ValueError:
                     logging.warning("Not a number")
 
