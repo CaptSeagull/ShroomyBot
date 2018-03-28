@@ -27,8 +27,9 @@ async def on_ready():
         "Use this link to invite {}:".format(shroomy.user.name),
         "https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8".format(shroomy.user.id)
     ])
-    logging.info(presence_string)
-    return await shroomy.change_presence(game=discord.Game(name=config.game))
+    logging.debug(presence_string)
+    logging.info("Ready to go")
+    return await shroomy.change_presence(game=discord.Game(name=shroomy.description))
 
 
 def is_owner(ctx):
@@ -40,7 +41,6 @@ async def on_message(message):
     # Only listen to messages from other people and none bots
     if message.author == shroomy.user or message.author.bot:
         return
-
     return await shroomy.process_commands(message)
 
 

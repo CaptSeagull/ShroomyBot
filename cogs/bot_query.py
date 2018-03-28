@@ -154,10 +154,13 @@ class query:
                     result_index = int(reply_message.content.split(' ')[0])
                     if result_index > len(term_list):
                         result_index = None
+                        await self.bot.add_reaction(ctx.message, emoji=tools.cross_mark_emoji)
                 except ValueError:
                     pass
             if not result_index or result_index < 1 or result_index > len(term_list):
                 result_index = randint(1, len(term_list))
+            elif reply_message:
+                await self.bot.add_reaction(reply_message, emoji=tools.check_mark_emoji)
             result_dict = term_list[result_index - 1]
 
             # Create embed object

@@ -33,6 +33,8 @@ class fun:
         # Do not echo if a mention in beginning or prefix
         if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
                                     or message.content.startswith(tools.prefix)):
+            await self.bot.add_reaction(message, emoji=tools.evil_emoji)
+            await asyncio.sleep(1.5)
             # if message was a png/jpeg, add pickle image to the image and upload
             image = tools.paste_image_from_source(message.content, self.bot.user.avatar_url)
             if image:
@@ -123,9 +125,11 @@ class fun:
     async def goodbye(self, ctx):
         """Sends a goodbye text; stops if host"""
         if ctx.message.author.id != tools.owner_id:
+            await self.bot.add_reaction(ctx.message, emoji=tools.cross_mark_emoji)
             return await self.bot.say("Oh! Goodbye, "
                                       + ctx.message.author.mention
                                       + "! See you again soon.")
+        await self.bot.add_reaction(ctx.message, emoji=tools.check_mark_emoji)
         await self.bot.say("I'm logging off. Goodbye frineds!")
         await self.bot.close()
 
@@ -233,11 +237,13 @@ class fun:
                     coin_amount = 3
                 else:
                     coin_amount = 1
+                await self.bot.add_reaction(reply_message, emoji=tools.check_mark_emoji)
                 await self.bot.send_message(message.channel, "That's correct!")
                 kyoncoin = tools.KyonCoin()
                 coins = kyoncoin.update_coins(message.server.id, message.author.id, coin_amount)
                 await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
             else:
+                await self.bot.add_reaction(reply_message, emoji=tools.cross_mark_emoji)
                 return await self.bot.send_message(message.channel,
                                                    "Sorry but the corrrect answer is: {0}".format(
                                                        question_dict['correct_answer']))
@@ -340,9 +346,12 @@ class fun:
         )
         await self.bot.send_message(message.channel, bot_reply)
         if answer_correct:
+            await self.bot.add_reaction(reply_message, emoji=tools.check_mark_emoji)
             kyoncoin = tools.KyonCoin()
             coins = kyoncoin.update_coins(message.server.id, message.author.id, 1)
             await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
+        else:
+            await self.bot.add_reaction(reply_message, emoji=tools.cross_mark_emoji)
 
 
 def setup(bot):
