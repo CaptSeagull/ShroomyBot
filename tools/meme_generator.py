@@ -17,7 +17,7 @@ def set_font_name(text):
     return "impact.ttf"
 
 
-def generate_meme_from_text(text: str=None, img_url: str=None):
+def generate_meme_from_text(text: str=None, img_url: str=None, gif_index: int=None):
     try:
         if not text:
             logging.warning("No text entered")
@@ -38,7 +38,12 @@ def generate_meme_from_text(text: str=None, img_url: str=None):
                                                 "image/webp")):
                 img = Image.open(BytesIO(resp.content))
                 if hasattr(img, 'is_animated') and img.is_animated:
-                    img.seek(random.randint(0, img.n_frames - 1))
+                    frames = img.n_frames
+                    if gif_index and gif_index < frames:
+                        frames = gif_index
+                    else:
+                        frames = random.randint(0, frames - 1)
+                    img.seek(frames)
                 img = img.convert('RGBA')
         if not img:
             img = Image.open(res_path + "bear-10.jpg")

@@ -254,11 +254,18 @@ class fun:
                                                   "Making memes, bear with me for a bit...")
         message = args
         img_url = None
+        gif_index = None
         if args:
-            msg_list = args.split('|', maxsplit=1)
+            msg_list = args.split('|', maxsplit=2)
             message = msg_list[0]
-            if len(msg_list) > 1:
+            if len(msg_list) == 2:
                 img_url = msg_list[1]
+            if len(msg_list) == 3:
+                try:
+                    gif_index = int(msg_list[2])
+                except ValueError:
+                    logging.warning("Not a number")
+
         # Check if an attachment is present. Prioritize that
         if ctx.message.attachments and ctx.message.attachments[0].get('url'):
             img_url = ctx.message.attachments[0].get('url')
@@ -270,7 +277,7 @@ class fun:
                 img_item = tools.get_random_item(img_dict.get('img_list', []))
                 img_url = img_item if img_item else None
 
-        img_result = tools.generate_meme_from_text(message, img_url)
+        img_result = tools.generate_meme_from_text(message, img_url, gif_index)
         if img_result:
             try:
                 with io.BytesIO(img_result) as new_image:
