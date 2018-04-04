@@ -30,6 +30,21 @@ class fun:
             if "ask me" in message.content:
                 return await self.ask_math(message)
 
+        # Handle AI code
+        if self.bot.user.mention in message.content:
+            talk_msg = message.content.split(' ')
+            # make sure we get there are text passed the mention
+            if len(talk_msg) > 1:
+                # activate bot's AI from Dialogflow
+                query = ' '.join([word for word in talk_msg if not word.startswith('<')])
+                msg = await self.bot.send_message(message.channel, "{}".format(tools.loading_emoji))
+                logging.debug("sending: {}".format(query))
+                logging.info("User {} talking to bot in {}:{}".format(
+                    message.author.name, message.channel.server.name, message.channel.name))
+                aireply = tools.talk_ai(query, message.channel.id)
+                logging.debug(aireply)
+                return await self.bot.edit_message(msg, new_content=aireply)
+
         # Do not echo if a mention in beginning or prefix
         if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
                                     or message.content.startswith(tools.prefix)):

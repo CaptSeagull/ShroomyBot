@@ -12,6 +12,7 @@ channel_spam_id = os.getenv('CHANNEL_ROOM')
 reddit_client_id = os.getenv('REDDIT_APP')
 reddit_secret_id = os.getenv('REDDIT_SECRET')
 reddit_user_agent = os.getenv('REDDIT_USER_AGENT')
+dialogflow_id = os.getenv('DIALOGFLOW_CLIENT')
 
 bot_extensions = ["bot_query", "bot_fun"]
 subreddits = {
