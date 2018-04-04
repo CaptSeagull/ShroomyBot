@@ -26,12 +26,10 @@ class fun:
         if message.author == self.bot.user or message.author.bot:
             return
 
-        if message.content.startswith(self.bot.user.mention):
+        # Handle AI code
+        if self.bot.user.id in message.raw_mentions:
             if "ask me" in message.content:
                 return await self.ask_math(message)
-
-        # Handle AI code
-        if self.bot.user.mention in message.content:
             talk_msg = message.content.split(' ')
             # make sure we get there are text passed the mention
             if len(talk_msg) > 1:
