@@ -43,6 +43,18 @@ class fun:
                 logging.debug(aireply)
                 return await self.bot.edit_message(msg, new_content=aireply)
 
+        # on random make him use ai for texts
+        if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
+                                    or message.content.startswith(tools.prefix)):
+            query = message.content
+            msg = await self.bot.send_message(message.channel, "{}".format(tools.loading_emoji))
+            logging.debug("sending: {}".format(query))
+            logging.info("User {} talking to bot in {}:{}".format(
+                message.author.name, message.channel.server.name, message.channel.name))
+            aireply = tools.talk_ai(query, message.channel.id).replace('@@username', message.author.name)
+            logging.debug(aireply)
+            return await self.bot.edit_message(msg, new_content=aireply)
+
         # Do not echo if a mention in beginning or prefix
         if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
                                     or message.content.startswith(tools.prefix)):
