@@ -39,7 +39,7 @@ class fun:
                 logging.debug("sending: {}".format(query))
                 logging.info("User {} talking to bot in {}:{}".format(
                     message.author.name, message.channel.server.name, message.channel.name))
-                aireply = tools.talk_ai(query, message.channel.id)
+                aireply = tools.talk_ai(query, message.channel.id).replace('@@username', message.author.name)
                 logging.debug(aireply)
                 return await self.bot.edit_message(msg, new_content=aireply)
 
