@@ -1,6 +1,7 @@
 from apiai import ApiAI
 from tools import dialogflow_id
 import json
+import logging
 
 
 def talk_ai(query, session_id):
