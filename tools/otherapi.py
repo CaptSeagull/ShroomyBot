@@ -436,3 +436,9 @@ def paste_image_from_source(source: str, image: str="https://cdn.discordapp.com/
     except Exception:
         logging.exception("Exception when pasting image from source")
     return None
+
+
+def convert_phrase_accent(phrase: str=None, mode: str="cat"):
+    if phrase:
+        return tools.Converter(phrase, mode)
+    return "You didn\'t say nuthin!"

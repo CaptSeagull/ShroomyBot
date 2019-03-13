@@ -5,6 +5,7 @@ from tools.discord_commons import format_emoji, check_mark_emoji, cross_mark_emo
 from tools.postgres_handler import KyonCoin, PokemonSearch, Token, Subreddit
 from tools.meme_generator import generate_meme_from_text
 from tools.dialogflow_handler import talk_ai
+from tools.Accent_Conversion import Converter
 
 
 def update_subreddits():

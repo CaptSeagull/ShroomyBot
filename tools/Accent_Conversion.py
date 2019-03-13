@@ -1,6 +1,3 @@
-import nltk
-from nltk import *
-
 #this is the function that will contain all the "cat grammar" that makes this actually work
 #it's messy as hell and i'm an idiot
 def Cat(string):

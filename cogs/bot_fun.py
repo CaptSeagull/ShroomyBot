@@ -326,21 +326,14 @@ class fun:
                 logging.exception("Exception when trying to generate meme image")
                 pass
         return await self.bot.edit_message(loading_msg, "wut")
-    
-    #i'm not convinced this works
-    async def cat(args)
-        mode = 'cat'
+
+    # i'm not convinced this works
+    @commands.command(pass_context=True, aliases=['cat', 'pirate'])
+    async def joke_accent(self, ctx, *, args: str=None):
+        mode = ctx.invoked_with
         string = args
-        converted = Converter(string, mode)
-        self.bot.send_message(converted)
-        
-    #not convinced this one will either    
-    async def pirate(args)
-        mode = 'pirate'
-        string = args
-        converted = Converter(string, mode)
-        self.bot.send_message(converted)
-        
+        converted = tools.convert_phrase_accent(string, mode)
+        return await self.bot.say(converted)
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):
