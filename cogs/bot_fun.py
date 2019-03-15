@@ -330,10 +330,20 @@ class fun:
     # i'm not convinced this works
     @commands.command(pass_context=True, aliases=['cat', 'pirate'])
     async def joke_accent(self, ctx, *, args: str=None):
+        """Joke accent translator. Format is -[mode] [phrase]. Currently supported modes are cat and pirate."""
         mode = ctx.invoked_with
         string = args
-        converted = tools.convert_phrase_accent(string, mode)
-        return await self.bot.say(converted)
+        bot_message = "{0}: {1}".format(ctx.message.author.mention , tools.Converter(string, mode)) #this makes it so that it almost mirrors the "copy cat" random func
+        embed = discord.Embed(color=ctx.message.author.color)
+        title = "Placeholder. You shouldn't see this."
+        if mode == "cat":
+            title = "Nyaa~"
+        elif mode == 'pirate':
+            title = "Shiver me timbers!"
+        embed.add_field(name=title, value=bot_message, inline=False)
+        embed.set_thumbnail(url=ctx.message.author.avatar_url)
+        await self.bot.delete_message(ctx.message)
+        return await self.bot.send_message(ctx.message.channel, embed=embed)
 
     @commands.group(pass_context=True)
     async def kyon(self, ctx):
