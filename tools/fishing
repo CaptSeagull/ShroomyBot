@@ -1,0 +1,45 @@
+import random
+
+
+def fish():
+    mode = input("Are you beta testing?")
+    attempts = 0
+    line2='[A][B][C]'
+    line3='[D][E][F]'
+    line4='[G][H][I]'
+    A = line2[1]
+    B = line2[4]
+    C = line2[7]
+    D = line3[1]
+    E = line3[4]
+    F = line3[7]
+    G = line4[1]
+    H = line4[4]
+    I = line4[7]
+    fishing_locations = [A, B, C, D, E, F, G, H, I]
+    fishing_location = random.randint(0,7)+1
+    solution = fishing_locations[fishing_location]
+    print(line2)
+    print(line3)
+    print(line4)
+    if mode == 'debug':
+        print("Solution: " + solution)
+    guess = input("Please input your guess.")
+    if guess == solution or guess == solution.lower():
+        print('Holy shit, you got it first try. Bullshit.')
+    else:
+        attempts = attempts + 1
+        print('Incorrect. Please try again. You have currently made {} attempts.'.format(attempts))
+        while guess != solution:
+            guess = input("Please input your guess.")
+            if guess == solution or guess == solution.lower():
+                attempts = attempts + 1
+                print('Correct! You win! It took you {} attempts to win.'.format(attempts))
+                return #had a glitch that let it keep going somehow? idk just put this here to fix
+            elif guess != solution:
+                attempts = attempts + 1
+                print('Incorrect. Please try again. You have currently made {} attempts.'.format(attempts))
+
+
+
+        
