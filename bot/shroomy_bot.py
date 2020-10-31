@@ -25,7 +25,7 @@ async def on_ready():
             discord.__version__, platform.python_version()),
         "Current Version: {0}".format(config.version),
         "Use this link to invite {}:".format(shroomy.user.name),
-        "https://discordapp.com/oauth2/authorize?client_id={}&scope=bot&permissions=8".format(shroomy.user.id)
+        "https://discord.com/oauth2/authorize?client_id={}&scope=bot&permissions=8".format(shroomy.user.id)
     ])
     logging.debug(presence_string)
     logging.info("Ready to go")
