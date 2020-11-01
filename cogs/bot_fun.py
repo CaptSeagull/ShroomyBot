@@ -293,8 +293,8 @@ class fun(commands.Cog):
                     logging.warning("Not a number")
 
         # Check if an attachment is present. Prioritize that
-        if ctx.message.attachments and ctx.message.attachments[0].get('url'):
-            img_url = ctx.message.attachments[0].get('url')
+        if ctx.message.attachments and ctx.message.attachments[0].url:
+            img_url = ctx.message.attachments[0].url
         if not img_url:
             # If no image provided, use a random subreddit
             subreddit = tools.get_random_item(list(tools.subreddits.values()))
@@ -309,6 +309,7 @@ class fun(commands.Cog):
                 with io.BytesIO(img_result) as new_image:
                     filename = "{0}-{1}.{2}".format("meme", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
                     await loading_msg.delete()
+                    await ctx.message.delete()
                     return await ctx.channel.send(file=discord.File(fp=new_image, filename=filename))
             except discord.HTTPException:
                 logging.exception("Exception when uploading meme image.")
