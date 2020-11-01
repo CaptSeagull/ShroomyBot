@@ -9,6 +9,19 @@ from discord.ext import commands
 import tools
 
 
+async def random_reddit_image(message, subreddit: str = 'Thinking'):
+    img_dict = tools.get_subreddit_image_list(subreddit)
+    if not img_dict.get('error'):
+        img_item = tools.get_random_item(img_dict.get('img_list', []))
+        if img_item:
+            embed = discord.Embed(color=message.author.color)
+            embed.set_image(url=img_item)
+            return await message.channel.send(embed=embed)
+        else:
+            return await message.channel.send(":thinking: | Couldn\'t find an image in this subreddit.")
+    return await message.channel.send(":thinking: | {0}".format(img_dict.get('error')))
+
+
 class query(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -19,7 +32,7 @@ class query(commands.Cog):
             return
 
         if random() < 0.01 and message.content.startswith("<:hmm"):
-            return await self.random_reddit_image(message, 'Thinking')
+            return await random_reddit_image(message, 'Thinking')
 
     # [pkmn]
     @commands.command()
@@ -196,19 +209,7 @@ class query(commands.Cog):
         subreddit = tools.subreddits.get(ctx.invoked_with)
         if not subreddit:
             subreddit = tools.get_random_item(list(tools.subreddits.values()))
-        return await self.random_reddit_image(ctx.message, subreddit)
-
-    async def random_reddit_image(self, message, subreddit: str = 'Thinking'):
-        img_dict = tools.get_subreddit_image_list(subreddit)
-        if not img_dict.get('error'):
-            img_item = tools.get_random_item(img_dict.get('img_list', []))
-            if img_item:
-                embed = discord.Embed(color=message.author.color)
-                embed.set_image(url=img_item)
-                return await message.channel.send(embed=embed)
-            else:
-                return await message.channel.send(":thinking: | Couldn\'t find an image in this subreddit.")
-        return await message.channel.send(":thinking: | {0}".format(img_dict.get('error')))
+        return await random_reddit_image(ctx.message, subreddit)
 
 
 def setup(bot):

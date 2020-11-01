@@ -14,13 +14,22 @@ from discord.ext import commands
 import tools
 
 
+async def on_command_error(error, ctx):
+    logging.error(error)
+    channel = ctx.channel
+    if isinstance(error, commands.CommandOnCooldown):
+        command = ctx.invoked_subcommand
+        return await channel.send("Whoa there, {0}, you've been using {1} too fast. "
+                                  + "Try again after a bit.".format(ctx.author.mention, command))
+
+
 class fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     #  async def on_ready(self):
     #    self.bot.loop.create_task(self.status_task())
-
+    @commands.Cog.listener()
     async def on_message(self, message):
         # Only listen to messages from other people and none bots
         if message.author == self.bot.user or message.author.bot:
@@ -82,14 +91,6 @@ class fun(commands.Cog):
                 embed.set_thumbnail(url=self.bot.user.avatar_url)
                 # return await self.bot.send_message(message.channel, embed=embed)
                 return await message.channel.send(embed=embed)
-
-    async def on_command_error(self, error, ctx):
-        logging.error(error)
-        channel = ctx.channel
-        if isinstance(error, commands.CommandOnCooldown):
-            command = ctx.invoked_subcommand
-            return await channel.send("Whoa there, {0}, you've been using {1} too fast. "
-                                      + "Try again after a bit.".format(ctx.author.mention, command))
 
     async def status_task(self):
         channel = self.bot.get_channel(tools.channel_spam_id)
@@ -307,15 +308,15 @@ class fun(commands.Cog):
             try:
                 with io.BytesIO(img_result) as new_image:
                     filename = "{0}-{1}.{2}".format("meme", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
-                    await loading_msg.delete
+                    await loading_msg.delete()
                     return await ctx.channel.send(discord.File(fp=new_image, filename=filename))
             except discord.HTTPException:
                 logging.exception("Exception when uploading meme image.")
-                return await loading_msg.edit("The image I got was way too big I'm sorry :sob:")
+                return await loading_msg.edit(new_content="The image I got was way too big I'm sorry :sob:")
             except Exception:
                 logging.exception("Exception when trying to generate meme image")
                 pass
-        return await loading_msg.edit("wut")
+        return await loading_msg.edit(new_content="wut")
 
     # i'm not convinced this works
     @commands.command(aliases=['cat', 'pirate'])
@@ -323,7 +324,8 @@ class fun(commands.Cog):
         """Joke accent translator. Format is -[mode] [phrase]. Currently supported modes are cat and pirate."""
         mode = ctx.invoked_with
         string = args
-        bot_message = "{0}: {1}".format(ctx.message.author.mention , tools.Converter(string, mode)) #this makes it so that it almost mirrors the "copy cat" random func
+        # this makes it so that it almost mirrors the "copy cat" random func
+        bot_message = "{0}: {1}".format(ctx.message.author.mention, tools.Converter(string, mode))
         embed = discord.Embed(color=ctx.author.color)
         title = "Placeholder. You shouldn't see this."
         if mode == "cat":
@@ -332,7 +334,7 @@ class fun(commands.Cog):
             title = "Shiver me timbers!"
         embed.add_field(name=title, value=bot_message, inline=False)
         embed.set_thumbnail(url=ctx.author.avatar_url)
-        await ctx.message.delete
+        await ctx.message.delete()
         return await ctx.channel.send(embed=embed)
 
     @commands.group()

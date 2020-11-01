@@ -33,7 +33,7 @@ async def on_ready():
 
 
 def is_owner(ctx):
-    return is_owner(ctx)
+    return shroomy.is_owner(ctx.author)
 
 
 @shroomy.event
@@ -99,7 +99,7 @@ async def update_subreddit():
 async def echo(ctx, *args):
     message = ' '.join(args)
     logging.debug(ctx.message.author.name + " called echo: " + ctx.message.content)
-    await ctx.message.delete
+    await ctx.message.delete()
     # await shroomy.delete_message(ctx.message)
     embed = discord.Embed(color=ctx.message.author.color)
     embed.add_field(name="Hey!", value=message, inline=False)
