@@ -129,9 +129,9 @@ class fun(commands.Cog):
 
     # [choose] command.
     @commands.command()
-    async def choose(self, ctx):
+    async def choose(self, ctx, *, args: str = None):
         """Choose one or more items asked"""
-        items = [text.replace(',', '') for text in ctx.message if text.lower() != "or"]
+        items = [text.replace(',', '') for text in args.split() if text.lower() != "or"]
         size = len(items)
         if size == 0:
             return await ctx.channel.send("There wasn't anything to choose from. :cry:")
