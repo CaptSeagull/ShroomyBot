@@ -52,7 +52,7 @@ class query(commands.Cog):
         footer_text = "Pokemon found!"
         if result_dict.get('error', ""):
             footer_text = "Oops! | {0}".format(result_dict['error'])
-        return await msg.edit(new_content=footer_text, embed=embed)
+        return await msg.edit(content=footer_text, embed=embed)
 
     @commands.group()
     async def say(self, ctx):

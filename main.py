@@ -5,8 +5,8 @@ from logging import INFO, DEBUG, basicConfig
 def main():
     parser = argparse.ArgumentParser(description="Run a Discord bot")
     parser.add_argument("-t", "--test", help="set for bot to use local variables", action="store_true")
-    # log_info = INFO
-    log_info = DEBUG # due to these logs on heroku, maybe it's a good idea to set level for now
+    log_info = INFO
+    # log_info = DEBUG # due to these logs on heroku, maybe it's a good idea to set level for now
     args = parser.parse_args()
     if args.test:
         import beta

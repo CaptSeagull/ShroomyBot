@@ -51,9 +51,8 @@ class fun(commands.Cog):
                                                                       message.channel.guild.name,
                                                                       message.channel.name))
                 ai_reply = tools.talk_ai(query, message.channel.id).replace('@@username', message.author.name)
-                await asyncio.sleep(1.5)
                 # return await self.bot.edit_message(msg, new_content=ai_reply)
-                return await msg.edit(new_content=ai_reply)
+                return await msg.edit(content=ai_reply)
 
         '''
         # on random make him use ai for texts
@@ -126,7 +125,7 @@ class fun(commands.Cog):
         # Display on Discord
         new_msg = await message.channel.send("I'm feeling... " + emoji_string)
         await asyncio.sleep(1)
-        await new_msg.edit(new_content=(new_msg.content + "\n\t...for now anyways."))
+        await new_msg.edit(content=new_msg.content + "\n\t...for now anyways.")
 
     # [choose] command.
     @commands.command()
@@ -313,11 +312,11 @@ class fun(commands.Cog):
                     return await ctx.channel.send(file=discord.File(fp=new_image, filename=filename))
             except discord.HTTPException:
                 logging.exception("Exception when uploading meme image.")
-                return await loading_msg.edit(new_content="The image I got was way too big I'm sorry :sob:")
+                return await loading_msg.edit(content="The image I got was way too big I'm sorry :sob:")
             except Exception:
                 logging.exception("Exception when trying to generate meme image")
                 pass
-        return await loading_msg.edit(new_content="wut")
+        return await loading_msg.edit(content="wut")
 
     # i'm not convinced this works
     @commands.command(aliases=['cat', 'pirate'])
