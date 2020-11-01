@@ -47,7 +47,7 @@ class KyonCoin(PostgresHandler):
             conn = self.connect()
             with conn:
                 with conn.cursor() as curs:
-                    curs.execute(self.select_coins_query, (server_id, user_id))
+                    curs.execute(self.select_coins_query, (str(server_id), str(user_id)))
                     result_one = curs.fetchone()
                     conn.rollback()  # Rollback so table won't be stuck on idle
                     if result_one:
@@ -64,13 +64,13 @@ class KyonCoin(PostgresHandler):
             conn = self.connect()
             with conn:
                 with conn.cursor() as curs:
-                    curs.execute(self.select_coins_query, (server_id, user_id))
+                    curs.execute(self.select_coins_query, (str(server_id), str(user_id)))
                     result_one = curs.fetchone()
                     if result_one:
                         amount += result_one[0]
-                        curs.execute(self.update_coins_query, (amount, server_id, user_id))
+                        curs.execute(self.update_coins_query, (amount, str(server_id), str(user_id)))
                     else:
-                        curs.execute(self.insert_coins_query, (server_id, user_id, amount))
+                        curs.execute(self.insert_coins_query, (str(server_id), str(user_id), amount))
                     conn.commit()
 
             conn.close()
