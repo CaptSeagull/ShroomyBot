@@ -26,6 +26,7 @@ class query(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.Cog.listener()
     async def on_message(self, message):
         # Only listen to messages from other people and none bots
         if message.author == self.bot.user or message.author.bot:
@@ -38,7 +39,7 @@ class query(commands.Cog):
     @commands.command()
     async def pkmn(self, ctx, *, pokemon="MissingNo"):
         """Looks up pokemon of the given name"""
-        msg = await self.bot.say("Ok, let me look it up...")
+        msg = await ctx.channel.send("Ok, let me look it up...")
         result_dict = tools.get_pokemon(pokemon)
         types = ", ".join((pkmn_type.title() for pkmn_type in result_dict['pkmn_types']))
         embed = discord.Embed(color=ctx.message.author.color)

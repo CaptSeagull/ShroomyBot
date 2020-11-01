@@ -48,7 +48,7 @@ class fun(commands.Cog):
                 msg = await message.channel.send("{}".format(tools.loading_emoji))
                 logging.debug("sending: {}".format(query))
                 logging.info("User {} talking to bot in {}:{}".format(
-                    message.author.name, message.channel.server.name, message.channel.name))
+                    message.author.name, message.channel.guild.name, message.channel.name))
                 ai_reply = tools.talk_ai(query, message.channel.id).replace('@@username', message.author.name)
                 logging.debug(ai_reply)
                 # return await self.bot.edit_message(msg, new_content=ai_reply)
@@ -129,9 +129,9 @@ class fun(commands.Cog):
 
     # [choose] command.
     @commands.command()
-    async def choose(self, ctx, *, args):
+    async def choose(self, ctx):
         """Choose one or more items asked"""
-        items = [text.replace(',', '') for text in args if text.lower() != "or"]
+        items = [text.replace(',', '') for text in ctx.message if text.lower() != "or"]
         size = len(items)
         if size == 0:
             return await ctx.channel.send("There wasn't anything to choose from. :cry:")
@@ -261,7 +261,7 @@ class fun(commands.Cog):
                 await reply_message.add_reaction(emoji=tools.check_mark_emoji)
                 await message.channel.send("That's correct!")
                 kyoncoin = tools.KyonCoin()
-                coins = kyoncoin.update_coins(message.server.id, message.author.id, coin_amount)
+                coins = kyoncoin.update_coins(message.guild.id, message.author.id, coin_amount)
                 await message.channel.send("You have {0} KyonCoins now!".format(coins))
             else:
                 await reply_message.add_reaction(emoji=tools.cross_mark_emoji)
@@ -342,7 +342,7 @@ class fun(commands.Cog):
         """Shows how many coins you have."""
         if ctx.invoked_subcommand is None:
             kyoncoin = tools.KyonCoin()
-            coins = kyoncoin.get_coins(ctx.server.id, ctx.author.id)
+            coins = kyoncoin.get_coins(ctx.guild.id, ctx.author.id)
             return await ctx.channel.send("{0}, you have {1} KyonCoins".format(ctx.author.mention, coins))
 
     async def ask_math(self, message):
@@ -382,7 +382,7 @@ class fun(commands.Cog):
         if answer_correct:
             await reply_message.add_reaction(emoji=tools.check_mark_emoji)
             kyoncoin = tools.KyonCoin()
-            coins = kyoncoin.update_coins(message.server.id, message.author.id, 1)
+            coins = kyoncoin.update_coins(message.guild.id, message.author.id, 1)
             await message.channel.send("You have {0} KyonCoins now!".format(coins))
         else:
             await reply_message.add_reaction(emoji=tools.cross_mark_emoji)
