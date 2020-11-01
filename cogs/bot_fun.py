@@ -47,10 +47,11 @@ class fun(commands.Cog):
                 # msg = await self.bot.send_message(message.channel, "{}".format(tools.loading_emoji))
                 msg = await message.channel.send("{}".format(tools.loading_emoji))
                 logging.debug("sending: {}".format(query))
-                logging.info("User {} talking to bot in {}:{}".format(
-                    message.author.name, message.channel.guild.name, message.channel.name))
+                logging.info("User {} talking to bot in {}:{}".format(message.author.name,
+                                                                      message.channel.guild.name,
+                                                                      message.channel.name))
                 ai_reply = tools.talk_ai(query, message.channel.id).replace('@@username', message.author.name)
-                logging.debug(ai_reply)
+                await asyncio.sleep(1.5)
                 # return await self.bot.edit_message(msg, new_content=ai_reply)
                 return await msg.edit(new_content=ai_reply)
 
