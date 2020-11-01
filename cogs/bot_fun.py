@@ -80,7 +80,7 @@ class fun(commands.Cog):
                     with io.BytesIO(image) as new_image:
                         filename = "{0}-{1}.{2}".format("hehe", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
                         # return await self.bot.send_file(message.channel, fp=new_image, filename=filename)
-                        return await message.channel.send(discord.File(fp=new_image, filename=filename))
+                        return await message.channel.send(file=discord.File(fp=new_image, filename=filename))
                 except Exception:
                     logging.exception("Exception when generating an image")
                     pass
@@ -309,7 +309,7 @@ class fun(commands.Cog):
                 with io.BytesIO(img_result) as new_image:
                     filename = "{0}-{1}.{2}".format("meme", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
                     await loading_msg.delete()
-                    return await ctx.channel.send(discord.File(fp=new_image, filename=filename))
+                    return await ctx.channel.send(file=discord.File(fp=new_image, filename=filename))
             except discord.HTTPException:
                 logging.exception("Exception when uploading meme image.")
                 return await loading_msg.edit(new_content="The image I got was way too big I'm sorry :sob:")

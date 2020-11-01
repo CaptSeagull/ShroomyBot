@@ -17,4 +17,6 @@ def talk_ai(query, session_id):
 def get_fulfillment_speech(response):
     """Retrieve the default response from the apiai response"""
     result = json.load(response)
-    return result.get('result', {}).get('fulfillment', {}).get('speech', "wut")
+    result_string = result.get('result', {}).get('fulfillment', {}).get('speech', "wut")
+    # if len(result_string) <= 0:
+    logging.info(result)
