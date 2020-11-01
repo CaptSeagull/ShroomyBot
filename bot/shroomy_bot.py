@@ -29,7 +29,7 @@ async def on_ready():
     ])
     logging.debug(presence_string)
     logging.info("Ready to go")
-    return await shroomy.change_presence(game=discord.Game(name=shroomy.description))
+    return await shroomy.change_presence(status=discord.Status.online, activity=discord.Game(name=shroomy.description))
 
 
 def is_owner(ctx):
@@ -51,8 +51,10 @@ async def load(extension_name: str):
     try:
         shroomy.load_extension(extension_name)
     except (AttributeError, ImportError) as e:
-        return await shroomy.whisper("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
-    return await shroomy.whisper("{} loaded.".format(extension_name))
+        logging.error("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+        # return await shroomy.send("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+    # return await shroomy.whisper("{} loaded.".format(extension_name))
+    logging.debug("{} loaded.".format(extension_name))
 
 
 @commands.check(is_owner)
@@ -60,7 +62,8 @@ async def load(extension_name: str):
 async def unload(extension_name: str):
     """Unloads an extension."""
     shroomy.unload_extension(extension_name)
-    return await shroomy.whisper("{} unloaded.".format(extension_name))
+    # return await shroomy.whisper("{} unloaded.".format(extension_name))
+    logging.debug("{} unloaded.".format(extension_name))
 
 
 @commands.check(is_owner)
@@ -71,9 +74,10 @@ async def reload(extension_name: str):
         shroomy.unload_extension(extension_name)
         shroomy.load_extension(extension_name)
     except Exception as ex:
-        exce = '{}: {}'.format(type(ex).__name__, ex)
-        logging.error('Failed to load extension {}\n{}'.format(extension_name, exce))
-    return await shroomy.whisper("{} reloaded.".format(extension_name))
+        exception_message = '{}: {}'.format(type(ex).__name__, ex)
+        logging.error('Failed to load extension {}\n{}'.format(extension_name, exception_message))
+    # return await shroomy.whisper("{} reloaded.".format(extension_name))
+    logging.debug("{} reloaded.".format(extension_name))
 
 
 @commands.check(is_owner)
@@ -86,7 +90,8 @@ async def update_subreddit():
     except Exception as ex:
         exce = '{}: {}'.format(type(ex).__name__, ex)
         logging.error('Failed to update subreddits \n{}'.format(exce))
-    return await shroomy.whisper("subreddits reloaded.")
+    # return await shroomy.whisper("subreddits reloaded.")
+    logging.debug("subreddits reloaded.")
 
 
 @commands.check(is_owner)
@@ -94,11 +99,13 @@ async def update_subreddit():
 async def echo(ctx, *args):
     message = ' '.join(args)
     logging.debug(ctx.message.author.name + " called echo: " + ctx.message.content)
-    await shroomy.delete_message(ctx.message)
+    await ctx.message.delete
+    # await shroomy.delete_message(ctx.message)
     embed = discord.Embed(color=ctx.message.author.color)
     embed.add_field(name="Hey!", value=message, inline=False)
     embed.set_image(url=shroomy.user.avatar_url)
-    return await shroomy.say(embed=embed)
+    ctx.send(embed=embed)
+    # return await shroomy.say(embed=embed)
 
 
 @commands.check(is_owner)
@@ -130,7 +137,8 @@ async def clean(ctx, *, args=""):
             should_delete_me = message.author == user
         return not has_check or should_delete_bot or should_delete_me
 
-    deleted = await shroomy.purge_from(ctx.message.channel, limit=limit, check=is_included)
+    # deleted = await shroomy.purge_from(ctx.message.channel, limit=limit, check=is_included)
+    deleted = await ctx.message.channel.purge(limit=limit, check=is_included)
     logging.info('Deleted {} message(s)'.format(len(deleted)))
 
 
