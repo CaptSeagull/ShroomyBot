@@ -13,7 +13,8 @@ from discord.ext import commands
 # personal files
 import tools
 
-class fun:
+
+class fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -34,13 +35,15 @@ class fun:
             if len(talk_msg) > 1:
                 # activate bot's AI from Dialogflow
                 query = ' '.join([word for word in talk_msg if not word.startswith('<')])
-                msg = await self.bot.send_message(message.channel, "{}".format(tools.loading_emoji))
+                # msg = await self.bot.send_message(message.channel, "{}".format(tools.loading_emoji))
+                msg = await message.channel.send("{}".format(tools.loading_emoji))
                 logging.debug("sending: {}".format(query))
                 logging.info("User {} talking to bot in {}:{}".format(
                     message.author.name, message.channel.server.name, message.channel.name))
                 ai_reply = tools.talk_ai(query, message.channel.id).replace('@@username', message.author.name)
                 logging.debug(ai_reply)
-                return await self.bot.edit_message(msg, new_content=ai_reply)
+                # return await self.bot.edit_message(msg, new_content=ai_reply)
+                return await msg.edit(new_content=ai_reply)
 
         '''
         # on random make him use ai for texts
@@ -59,7 +62,7 @@ class fun:
         # Do not echo if a mention in beginning or prefix
         if random() < 0.01 and not (message.content.startswith(self.bot.user.mention)
                                     or message.content.startswith(tools.prefix)):
-            await self.bot.add_reaction(message, emoji=tools.evil_emoji)
+            await message.add_reaction(emoji=tools.evil_emoji)
             await asyncio.sleep(1.5)
             # if message was a png/jpeg, add pickle image to the image and upload
             image = tools.paste_image_from_source(message.content, self.bot.user.avatar_url)
@@ -67,7 +70,8 @@ class fun:
                 try:
                     with io.BytesIO(image) as new_image:
                         filename = "{0}-{1}.{2}".format("hehe", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
-                        return await self.bot.send_file(message.channel, fp=new_image, filename=filename)
+                        # return await self.bot.send_file(message.channel, fp=new_image, filename=filename)
+                        return await message.channel.send(discord.File(fp=new_image, filename=filename))
                 except Exception:
                     logging.exception("Exception when generating an image")
                     pass
@@ -76,30 +80,28 @@ class fun:
                 embed = discord.Embed(color=message.author.color)
                 embed.add_field(name="Hehe...", value=bot_message, inline=False)
                 embed.set_thumbnail(url=self.bot.user.avatar_url)
-                return await self.bot.send_message(message.channel, embed=embed)
+                # return await self.bot.send_message(message.channel, embed=embed)
+                return await message.channel.send(embed=embed)
 
     async def on_command_error(self, error, ctx):
         logging.error(error)
-        channel = ctx.message.channel
+        channel = ctx.channel
         if isinstance(error, commands.CommandOnCooldown):
             command = ctx.invoked_subcommand
-            return await self.bot.send_message(
-                channel, ("Whoa there, {0}, you've been using {1} too fast. "
-                          + "Try again after a bit.").format(
-                    ctx.message.author.mention, command
-                ))
+            return await channel.send("Whoa there, {0}, you've been using {1} too fast. "
+                                      + "Try again after a bit.".format(ctx.author.mention, command))
 
     async def status_task(self):
         channel = self.bot.get_channel(tools.channel_spam_id)
         while self.bot.is_logged_in:
             if random() < 0.25 and channel is not None:
-                ctx = await self.bot.send_message(channel, "New mood")
+                ctx = await channel.send("New mood")
                 await asyncio.sleep(2.0)
                 await self.get_mood(ctx)
             await asyncio.sleep(360.0)
 
     # [mood] command. Generates random mood whenever it is called.
-    @commands.command(pass_context=True)
+    @commands.command()
     async def mood(self, ctx):
         """Generate text with a custom emoji from server"""
         await self.get_mood(ctx.message)
@@ -107,62 +109,60 @@ class fun:
     async def get_mood(self, message):
         # Retrieve a random item from custom emojis from the server
         # Make sure the emojis are unrestricted otherwise they will be ignored
-        custom_emojis = [emoji for emoji in self.bot.get_all_emojis() if not emoji.roles]
+        custom_emojis = [emoji for emoji in self.bot.emojis if not emoji.roles]
 
         if not custom_emojis:
-            return await self.bot.say((
+            return await message.channel.send(
                 "Aww... "
                 "There's no custom emojis I can express in this server. "
-                "In that case my mood is :poop:"))
+                "In that case my mood is :poop:")
 
         # Retrieve random emoji retrieved from server and format it to be shown on chat.
         emoji_string = tools.format_emoji(
             tools.get_random_item(custom_emojis))
 
         # Display on Discord
-        new_msg = await self.bot.send_message(message.channel, "I'm feeling... " + emoji_string)
+        new_msg = await message.channel.send("I'm feeling... " + emoji_string)
         await asyncio.sleep(1)
-        await self.bot.edit_message(new_msg, new_content=(
-                new_msg.content + "\n\t...for now anyways."))
+        await new_msg.edit(new_content=(new_msg.content + "\n\t...for now anyways."))
 
     # [choose] command.
     @commands.command()
-    async def choose(self, *args):
+    async def choose(self, ctx, *, args):
         """Choose one or more items asked"""
         items = [text.replace(',', '') for text in args if text.lower() != "or"]
         size = len(items)
         if size == 0:
-            return await self.bot.say("There wasn't anything to choose from. :cry:")
+            return await ctx.channel.send("There wasn't anything to choose from. :cry:")
         elif size == 1:
-            return await self.bot.say(
+            return await ctx.channel.send(
                 "Well... I guess {0} since that's the only option!".format(
                     str(items[0])))
         else:
             item_chosen = tools.get_random_item(items)
             if item_chosen == "me":
                 item_chosen = "you"
-            return await self.bot.say("I choose... {0}!".format(
-                str(item_chosen)))
+            return await ctx.channel.send("I choose... {0}!".format(str(item_chosen)))
 
     # [goodbye] command. Logs the bot off discord if owner calls it;
     # otherwise, bot will simply say goodbye to the caller.
     # uses 'dad' variable in config.py
-    @commands.command(pass_context=True)
+    @commands.command()
     async def goodbye(self, ctx):
         """Sends a goodbye text; stops if host"""
         if ctx.message.author.id != tools.owner_id:
-            await self.bot.add_reaction(ctx.message, emoji=tools.cross_mark_emoji)
-            return await self.bot.say("Oh! Goodbye, "
-                                      + ctx.message.author.mention
-                                      + "! See you again soon.")
-        await self.bot.add_reaction(ctx.message, emoji=tools.check_mark_emoji)
-        await self.bot.say("I'm logging off. Goodbye frineds!")
+            await ctx.message.add_reaction(emoji=tools.cross_mark_emoji)
+            return await ctx.channel.send("Oh! Goodbye, "
+                                          + ctx.author.mention
+                                          + "! See you again soon.")
+        await ctx.message.add_reaction(emoji=tools.check_mark_emoji)
+        await ctx.channel.send("I'm logging off. Goodbye frineds!")
         await self.bot.close()
 
     # [poke] command. If entered a user who is not the sender nor the bot,
     # it will mention that the sender poked the user.
     # Otherwise, it will assume the sender is poking the bot.
-    @commands.command(pass_context=True, aliases=['interact', 'hug', 'pet', 'pat'])
+    @commands.command(aliases=['interact', 'hug', 'pet', 'pat'])
     async def poke(self, ctx, member: discord.Member = None):
         """ poke someone. Assumes itself if no mention.
 
@@ -175,30 +175,25 @@ class fun:
             'pat': "patting",
             'interact': "interacting with"
         }
-        source = ctx.message.author
+        source = ctx.author
         poking_bot = False if (member is not None and member != self.bot.user) else True
         poker_bot = True if (member is not None and member == source) else False
         if not poking_bot and poker_bot:
-            await self.bot.say('I\'m {1} you, {0}!'
-                               .format(source.mention,
-                                       action_dict[ctx.invoked_with]))
+            await ctx.channel.send('I\'m {1} you, {0}!'.format(source.mention, action_dict[ctx.invoked_with]))
         elif poking_bot:
-            await self.bot.say('Hello, {0}! You are {1} me!'
-                               .format(source.mention,
-                                       action_dict[ctx.invoked_with]))
+            await ctx.channel.send('Hello, {0}! You are {1} me!'.format(source.mention, action_dict[ctx.invoked_with]))
         else:
-            await self.bot.say('Hey {0}, {1} is {2} you!'
-                               .format(member.mention,
-                                       source.mention,
-                                       action_dict[ctx.invoked_with]))
+            await ctx.channel.send('Hey {0}, {1} is {2} you!'.format(member.mention,
+                                                                     source.mention,
+                                                                     action_dict[ctx.invoked_with]))
 
-    @commands.group(pass_context=True)
+    @commands.group()
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def ask(self, ctx):
         if ctx.invoked_subcommand is None:
-            return await self.bot.say("What kind of question do you want to be asked? Try the help for options.")
+            return await ctx.channel.send("What kind of question do you want to be asked? Try the help for options.")
 
-    @ask.command(pass_context=True)
+    @ask.command()
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def me(self, ctx):
         """Asks you a math question.
@@ -207,20 +202,20 @@ class fun:
         """
         await self.ask_math(ctx.message)
 
-    @ask.group(pass_context=True)
+    @ask.group()
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def trivia(self, ctx):
         """Ask you for a random trivia question."""
         if ctx.subcommand_passed != "anime":
             return await self.ask_trivia(ctx.message)
 
-    @trivia.command(pass_context=True)
+    @trivia.command()
     @commands.cooldown(rate=10, per=60, type=commands.BucketType.user)
     async def anime(self, ctx):
         """Ask you for a random anime trivia question."""
         return await self.ask_trivia(ctx.message, 31)
 
-    async def ask_trivia(self, message, category: int=None):
+    async def ask_trivia(self, message, category: int = None):
         question_dict = tools.get_trivia_question(category=category)
         if not question_dict.get('error', ""):
             difficulty_name = question_dict['difficulty']
@@ -235,18 +230,17 @@ class fun:
 
             message_block = "I have a question for you: ```{0}\n\n{1}\n\t{2}\n\n{3}```".format(
                 difficulty, question, choices, footer)
-            await self.bot.send_message(message.channel, message_block)
+            await message.channel.send(message_block)
+
+            def pred(m):
+                return m.author == message.author and m.channel == message.channel
             try:
-                reply_message = await self.bot.wait_for_message(
-                    author=message.author,
-                    channel=message.channel,
-                    timeout=time)
+                reply_message = await self.bot.wait_for('message', check=pred, timeout=time)
             except asyncio.TimeoutError:
                 reply_message = None
                 pass
             if reply_message is None:
-                return await self.bot.send_message(message.channel,
-                                                   "Oh, sorry, you took too long. Try again")
+                return await message.channel.send("Oh, sorry, you took too long. Try again")
 
             correct_num = question_dict['correct']
             answer_num = None
@@ -263,27 +257,25 @@ class fun:
                     coin_amount = 3
                 else:
                     coin_amount = 1
-                await self.bot.add_reaction(reply_message, emoji=tools.check_mark_emoji)
-                await self.bot.send_message(message.channel, "That's correct!")
+                await reply_message.add_reaction(emoji=tools.check_mark_emoji)
+                await message.channel.send("That's correct!")
                 kyoncoin = tools.KyonCoin()
                 coins = kyoncoin.update_coins(message.server.id, message.author.id, coin_amount)
-                await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
+                await message.channel.send("You have {0} KyonCoins now!".format(coins))
             else:
-                await self.bot.add_reaction(reply_message, emoji=tools.cross_mark_emoji)
-                return await self.bot.send_message(message.channel,
-                                                   "Sorry but the corrrect answer is: {0}".format(
-                                                       question_dict['correct_answer']))
+                await reply_message.add_reaction(emoji=tools.cross_mark_emoji)
+                return await message.channel.send("Sorry but the correct answer is: {0}".format(
+                    question_dict['correct_answer']))
         else:
-            return await self.bot.send_message(message.channel, question_dict['error'])
+            return await message.channel.send(question_dict['error'])
 
-    @commands.command(pass_context=True)
-    async def meme(self, ctx, *, args: str=None):
+    @commands.command()
+    async def meme(self, ctx, *, args: str = None):
         """Meme Generator. Format is <top>;<bottom>|<img_url>
 
         Alternatively, image could be an attachment so format is <top>;<bottom>"""
 
-        loading_msg = await self.bot.send_message(ctx.message.channel,
-                                                  "Making memes, bear with me for a bit...")
+        loading_msg = await ctx.message.channel.send("Making memes, bear with me for a bit...")
         message = args
         img_url = None
         gif_index = None
@@ -315,60 +307,57 @@ class fun:
             try:
                 with io.BytesIO(img_result) as new_image:
                     filename = "{0}-{1}.{2}".format("meme", datetime.now().strftime("%d-%m-%y_%H%M"), "png")
-                    await self.bot.delete_message(loading_msg)
-                    return await self.bot.send_file(ctx.message.channel, fp=new_image, filename=filename)
+                    await loading_msg.delete
+                    return await ctx.channel.send(discord.File(fp=new_image, filename=filename))
             except discord.HTTPException:
                 logging.exception("Exception when uploading meme image.")
-                return await self.bot.edit_message(loading_msg,
-                                                   new_content="The image I got was way too big I'm sorry :sob:")
+                return await loading_msg.edit("The image I got was way too big I'm sorry :sob:")
             except Exception:
                 logging.exception("Exception when trying to generate meme image")
                 pass
-        return await self.bot.edit_message(loading_msg, "wut")
+        return await loading_msg.edit("wut")
 
     # i'm not convinced this works
-    @commands.command(pass_context=True, aliases=['cat', 'pirate'])
-    async def joke_accent(self, ctx, *, args: str=None):
+    @commands.command(aliases=['cat', 'pirate'])
+    async def joke_accent(self, ctx, *, args: str = None):
         """Joke accent translator. Format is -[mode] [phrase]. Currently supported modes are cat and pirate."""
         mode = ctx.invoked_with
         string = args
         bot_message = "{0}: {1}".format(ctx.message.author.mention , tools.Converter(string, mode)) #this makes it so that it almost mirrors the "copy cat" random func
-        embed = discord.Embed(color=ctx.message.author.color)
+        embed = discord.Embed(color=ctx.author.color)
         title = "Placeholder. You shouldn't see this."
         if mode == "cat":
             title = "Nyaa~"
         elif mode == 'pirate':
             title = "Shiver me timbers!"
         embed.add_field(name=title, value=bot_message, inline=False)
-        embed.set_thumbnail(url=ctx.message.author.avatar_url)
-        await self.bot.delete_message(ctx.message)
-        return await self.bot.send_message(ctx.message.channel, embed=embed)
+        embed.set_thumbnail(url=ctx.author.avatar_url)
+        await ctx.message.delete
+        return await ctx.channel.send(embed=embed)
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def kyon(self, ctx):
         """Shows how many coins you have."""
         if ctx.invoked_subcommand is None:
             kyoncoin = tools.KyonCoin()
-            coins = kyoncoin.get_coins(ctx.message.server.id, ctx.message.author.id)
-            return await self.bot.say("{0}, you have {1} KyonCoins".format(ctx.message.author.mention, coins))
+            coins = kyoncoin.get_coins(ctx.server.id, ctx.author.id)
+            return await ctx.channel.send("{0}, you have {1} KyonCoins".format(ctx.author.mention, coins))
 
     async def ask_math(self, message):
         question, num_answer = tools.get_random_math_question()
-        await self.bot.send_message(
-            message.channel,
-            "Ok, {0}, what is {1}?".format(
+        await message.channel.send("Ok, {0}, what is {1}?".format(
                 message.author.mention,
                 question))
+
+        def pred(m):
+            return m.author == message.author and m.channel == message.channel
         try:
-            reply_message = await self.bot.wait_for_message(
-                author=message.author,
-                channel=message.channel,
-                timeout=20.0)
+            reply_message = await self.bot.wait_for('message', check=pred, timeout=20.0)
         except asyncio.TimeoutError:
             reply_message = None
             pass
         if reply_message is None:
-            return await self.bot.send_message(message.channel, "Oh, sorry, you took too long. Try again")
+            return await message.channel.send("Oh, sorry, you took too long. Try again")
         message_text = reply_message.content
         reply = message_text
         num_input = None
@@ -387,14 +376,14 @@ class fun:
             else ("Oh no that wasn't right..."
                   "The answer is {0}!").format(num_answer)  # Result if wrong
         )
-        await self.bot.send_message(message.channel, bot_reply)
+        await message.channel.send(bot_reply)
         if answer_correct:
-            await self.bot.add_reaction(reply_message, emoji=tools.check_mark_emoji)
+            await reply_message.add_reaction(emoji=tools.check_mark_emoji)
             kyoncoin = tools.KyonCoin()
             coins = kyoncoin.update_coins(message.server.id, message.author.id, 1)
-            await self.bot.send_message(message.channel, "You have {0} KyonCoins now!".format(coins))
+            await message.channel.send("You have {0} KyonCoins now!".format(coins))
         else:
-            await self.bot.add_reaction(reply_message, emoji=tools.cross_mark_emoji)
+            await reply_message.add_reaction(emoji=tools.cross_mark_emoji)
 
 
 def setup(bot):

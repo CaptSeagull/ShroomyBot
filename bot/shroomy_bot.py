@@ -33,7 +33,7 @@ async def on_ready():
 
 
 def is_owner(ctx):
-    return ctx.message.author.id == config.owner_id
+    return is_owner(ctx)
 
 
 @shroomy.event
@@ -95,7 +95,7 @@ async def update_subreddit():
 
 
 @commands.check(is_owner)
-@shroomy.command(pass_context=True, hidden=True)
+@shroomy.command(hidden=True)
 async def echo(ctx, *args):
     message = ' '.join(args)
     logging.debug(ctx.message.author.name + " called echo: " + ctx.message.content)
@@ -109,7 +109,7 @@ async def echo(ctx, *args):
 
 
 @commands.check(is_owner)
-@shroomy.command(pass_context=True, hidden=True)
+@shroomy.command(hidden=True)
 async def clean(ctx, *, args=""):
     limit = 10
     bot_del = False

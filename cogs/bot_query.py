@@ -9,7 +9,7 @@ from discord.ext import commands
 import tools
 
 
-class query:
+class query(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -22,7 +22,7 @@ class query:
             return await self.random_reddit_image(message, 'Thinking')
 
     # [pkmn]
-    @commands.command(pass_context=True)
+    @commands.command()
     async def pkmn(self, ctx, *, pokemon="MissingNo"):
         """Looks up pokemon of the given name"""
         msg = await self.bot.say("Ok, let me look it up...")
@@ -38,9 +38,9 @@ class query:
         footer_text = "Pokemon found!"
         if result_dict.get('error', ""):
             footer_text = "Oops! | {0}".format(result_dict['error'])
-        return await self.bot.edit_message(msg, new_content=footer_text, embed=embed)
+        return await msg.edit(new_content=footer_text, embed=embed)
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def say(self, ctx):
         """Repeats sender. If nothing, a quote.
 
@@ -50,11 +50,11 @@ class query:
             if ctx.subcommand_passed is not None:
                 # remove the command from the phrase
                 msg = ctx.message.content[len(ctx.prefix + ctx.invoked_with):].strip()
-                embed = discord.Embed(color=ctx.message.author.color)
+                embed = discord.Embed(color=ctx.author.color)
                 embed.add_field(name="I say...", value=msg, inline=False)
                 #  embed.set_image(url=self.bot.user.avatar_url)
                 embed.set_thumbnail(url=self.bot.user.avatar_url)
-                return await self.bot.say(embed=embed)
+                return await ctx.channel.send(embed=embed)
 
             # if no phrases passed, return a random quote
             result_dict = tools.get_random_quote()
@@ -63,12 +63,12 @@ class query:
                                       url=result_dict['source'], color=ctx.message.author.color)
                 embed.add_field(name="**{0}**".format(result_dict['author']),
                                 value="{0}".format(result_dict['quote']), inline=False)
-                return await self.bot.say(embed=embed)
+                return await ctx.channel.send(embed=embed)
             else:
-                return await self.bot.say(
+                return await ctx.channel.send(
                     content="O-oh | Failed: {0}".format(result_dict['error']))
 
-    @say.command(pass_context=True)
+    @say.command()
     async def woof(self, ctx):
         """Send a woof"""
         result_dict = tools.get_random_uk_doge()
@@ -77,13 +77,11 @@ class query:
             embed.set_image(url=result_dict['doge_url'])
             embed.set_footer(text="courtesy of {0}"
                              .format(result_dict['source']))
-            return await self.bot.say(content=":dog: | Woof Woof!",
-                                      embed=embed)
+            return await ctx.channel.send(content=":dog: | Woof Woof!", embed=embed)
         else:
-            return await self.bot.say(content=":dog: | Failed: {0}"
-                                      .format(result_dict['error']))
+            return await ctx.channel.send(content=":dog: | Failed: {0}".format(result_dict['error']))
 
-    @commands.group(pass_context=True)
+    @commands.group()
     async def define(self, ctx):
         """Generates an Oxford dictionary definition.
 
@@ -100,7 +98,7 @@ class query:
                     definitions = '\n'.join(("{0}. {1}".format(count, eng_def)
                                              for count, eng_def
                                              in enumerate(result_dict['definitions'], 1)))
-                    embed = discord.Embed(color=ctx.message.author.color)
+                    embed = discord.Embed(color=ctx.author.color)
                     embed.add_field(name="Entry found for", value=word, inline=True)
                     if etymologies:
                         embed.add_field(name="Etymologies",
@@ -110,13 +108,13 @@ class query:
                                         value=definitions, inline=False)
                     embed.set_thumbnail(url=self.bot.user.avatar_url)
                     embed.set_footer(text="Made possible by {0}".format(result_dict['source']))
-                    return await self.bot.say(embed=embed)
+                    return await ctx.channel.send(embed=embed)
                 else:
-                    return await self.bot.say("Oops! | {0}".format(result_dict['error']))
-            return await self.bot.say("What should I define?")
+                    return await ctx.channel.send("Oops! | {0}".format(result_dict['error']))
+            return await ctx.channel.send("What should I define?")
 
     # [define jp]
-    @define.command(pass_context=True)
+    @define.command()
     async def jp(self, ctx, *, words=""):
         """Looks up a japanese definition"""
         result_terms = tools.get_jisho_page(words)
@@ -135,15 +133,16 @@ class query:
             footer = "::You have {} seconds to choose otherwise one will randomly be chosen.::".format(time)
             message_block = "Found the following terms :japanese_ogre: ```{}```".format(
                 '\n'.join([header, choices, footer]))
-            await self.bot.send_message(ctx.message.channel, message_block)
+            await ctx.message.channel.send(message_block)
 
+            message = ctx.message
             # Wait for user to select a number from the given block, if invalid or 30 secs have passed
             # Retrieve a random item from the list
+
+            def pred(m):
+                return m.author == message.author and m.channel == message.channel
             try:
-                reply_message = await self.bot.wait_for_message(
-                    author=ctx.message.author,
-                    channel=ctx.message.channel,
-                    timeout=time)
+                reply_message = await self.bot.wait_for('message', check=pred, timeout=time)
             except asyncio.TimeoutError:
                 reply_message = None
                 pass
@@ -154,13 +153,13 @@ class query:
                     result_index = int(reply_message.content.split(' ')[0])
                     if result_index > len(term_list):
                         result_index = None
-                        await self.bot.add_reaction(ctx.message, emoji=tools.cross_mark_emoji)
+                        await ctx.message.add_reaction(emoji=tools.cross_mark_emoji)
                 except ValueError:
                     pass
             if not result_index or result_index < 1 or result_index > len(term_list):
                 result_index = randint(1, len(term_list))
             elif reply_message:
-                await self.bot.add_reaction(reply_message, emoji=tools.check_mark_emoji)
+                await reply_message.add_reaction(emoji=tools.check_mark_emoji)
             result_dict = term_list[result_index - 1]
 
             # Create embed object
@@ -180,15 +179,14 @@ class query:
             # Set footer and thumbnail
             embed.set_footer(text="Made using {0}".format(result_terms['source']))
             embed.set_thumbnail(url=self.bot.user.avatar_url)
-            await self.bot.send_message(ctx.message.channel,
-                                        content="Results for {0} ({1})".format(
-                                            result_dict['writing'],
-                                            result_dict['reading']),
-                                        embed=embed)
+            await ctx.channel.send(content="Results for {0} ({1})".format(
+                                           result_dict['writing'],
+                                           result_dict['reading']),
+                                   embed=embed)
         else:
-            await self.bot.send_message(ctx.message.channel, "Oops! | {0}".format(result_terms['error']))
+            await ctx.channel.send("Oops! | {0}".format(result_terms['error']))
 
-    @commands.command(pass_context=True, aliases=list(tools.subreddits.keys()))
+    @commands.command(aliases=list(tools.subreddits.keys()))
     async def reddit(self, ctx):
         """Gets an image from a subreddit.
 
@@ -207,12 +205,10 @@ class query:
             if img_item:
                 embed = discord.Embed(color=message.author.color)
                 embed.set_image(url=img_item)
-                return await self.bot.send_message(message.channel, embed=embed)
+                return await message.channel.send(embed=embed)
             else:
-                return await self.bot.send_message(message.channel,
-                                                   ":thinking: | Couldn\'t find an image in this subreddit.")
-        return await self.bot.send_message(message.channel,
-                                           ":thinking: | {0}".format(img_dict.get('error')))
+                return await message.channel.send(":thinking: | Couldn\'t find an image in this subreddit.")
+        return await message.channel.send(":thinking: | {0}".format(img_dict.get('error')))
 
 
 def setup(bot):
